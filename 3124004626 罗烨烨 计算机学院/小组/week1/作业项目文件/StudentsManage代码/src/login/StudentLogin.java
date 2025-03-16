@@ -33,10 +33,11 @@ public class StudentLogin {
              *
              * */
 
-            Students s = MySearch.searchToOne("SELECT students_id `id`, students_name `name`" +
-                    ", students_phoneNumber `phoneNumber`, students_classHadSelected `classHadSelected`" +
-                    ",students_idNumber `idNumber`, students_birthday `birthday`, students_gender `gender`" +
-                    "FROM student.students WHERE students_id = ?", connection, Students.class, users_key);
+            Students s = MySearch.searchToOne("SELECT students_id `id`, students_name `name`, " +
+                    "students_classNumber `classNumber`, students_phoneNumber `phoneNumber`, " +
+                    "students_classHadSelected `classHadSelected`, students_idNumber `idNumber`, " +
+                    "students_birthday `birthday`, students_gender `gender` FROM student.students " +
+                    "WHERE students_id = ?", connection, Students.class, users_key);
 
             //将课程表信息封装到HashSet中
             Set<Courses> courseSet = MySearch.searchToSet("SELECT courses_key `key`," +
@@ -78,7 +79,7 @@ public class StudentLogin {
 
             for (Courses c : courseSet) {
 
-                if (Integer.parseInt(id) == c.getKey()) {
+                if (Integer.parseInt(id) == c.getKey() && s.getClassHadSelected().contains(c.getCourseName())) {
                     System.out.println("课程名称：" + c.getCourseName());
                     System.out.println("学分：" + c.getScore());
                     System.out.print("请输入yes以退选，输入其他以取消退选:\n>");
@@ -97,13 +98,19 @@ public class StudentLogin {
                             }
                         }
 
-                        String classInformation = "";
+                        String classInformation = drop[0];
 
                         //重新组装选课信息
-                        for (int i = 0; i < drop.length; i++) {
-                            classInformation += drop[i];
-                            if (!drop[i].equals("") && i < drop.length - 1) {
-                                classInformation += "+";
+                        for (int i = 1; i < drop.length; i++) {
+
+                            if (!drop[i].equals("")) {
+
+                                if (drop[0].equals("") && i == 1) {
+                                    classInformation += drop[i];
+                                    continue;
+                                }
+
+                                classInformation += "+" + drop[i];
                             }
                         }
 
@@ -118,11 +125,16 @@ public class StudentLogin {
                         //更新课程表信息
                         MyUpdate.update(sql, connection, c.getNumberChoose() - 1, c.getKey());
 
+                        System.out.println("退选成功");
+                        return;
+
                     } else {
                         return;
                     }
                 }
             }
+
+            System.out.println("您没有选这门课");
         }
     }
 

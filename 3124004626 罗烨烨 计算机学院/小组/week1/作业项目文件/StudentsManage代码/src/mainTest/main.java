@@ -20,7 +20,7 @@ public class main {
 
         //加载配置文件
         Properties prop = new Properties();
-        prop.load(new FileInputStream("src/druid.properties"));
+        prop.load(new FileInputStream("StudentsManage代码/src/druid.properties"));
 
         //获取连接池对象
         DataSource dataSource = DruidDataSourceFactory.createDataSource(prop);
