@@ -10,13 +10,14 @@ import java.sql.Connection;
 import java.util.Properties;
 import java.util.Scanner;
 
-public class main {
+public class Manage {
 
-    final static String LOGIN = "1";
-    final static String REGISTER = "2";
-    final static String EXIT= "3";
+    public static void app() throws Exception {
 
-    public static void main(String[] args) throws Exception {
+        final String LOGIN = "1";
+        final String REGISTER = "2";
+        final String EXIT = "3";
+
 
         //加载配置文件
         Properties prop = new Properties();
@@ -41,7 +42,7 @@ public class main {
 
                 case LOGIN -> new Login(connection);
 
-                case REGISTER-> new Register(connection);
+                case REGISTER -> new Register(connection);
 
                 case EXIT -> {
                     connection.close();

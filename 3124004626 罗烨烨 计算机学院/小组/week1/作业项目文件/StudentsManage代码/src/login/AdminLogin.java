@@ -20,7 +20,8 @@ public class AdminLogin {
     final String SEARCH_COURSE_WHO_CHOOSE = "5";
     final String SEARCH_ONE_CHOOSE_WHICH = "6";
     final String INSERT_COURSE = "7";
-    final String EXIT = "8";
+    final String DELETE_COURSE = "8";
+    final String EXIT = "9";
 
     Scanner sc = new Scanner(System.in);
 
@@ -53,6 +54,8 @@ public class AdminLogin {
 
                 case INSERT_COURSE -> insertCourse(connection);
 
+                case DELETE_COURSE -> deleteCourse(connection);
+
                 case EXIT -> System.exit(0);
 
                 default -> System.out.println("您的输入有误");
@@ -62,6 +65,124 @@ public class AdminLogin {
         }
 
     }
+
+    private void deleteCourse(Connection connection) throws Exception {
+
+        //将课程表信息封装到HashSet中
+        Set<Courses> courseSet = MySearch.searchToSet("SELECT courses_key `key`," +
+                " courses_name `courseName`, courses_score `score`, courses_information `information`," +
+                " courses_numberChoose `numberChoose`, ifCanChoose, courses_numberCanChoose `numberCanChoose`" +
+                " FROM student.courses", connection, Courses.class);
+
+        //将学生信息封装到HashSet中
+        Set<Students> studentSet = MySearch.searchToSet("SELECT students_id `id`, students_name `name`, " +
+                "students_classNumber `classNumber`, students_phoneNumber `phoneNumber`, " +
+                "students_classHadSelected `classHadSelected`, students_idNumber `idNumber`, " +
+                "students_birthday `birthday`, students_gender `gender` FROM student.students ", connection, Students.class);
+
+        String id = "";
+
+        //从键盘获取序号
+        while (true) {
+
+            System.out.print("请输入您要删除课程的序号（输入0以返回）:\n>");
+            id = sc.next();
+
+            if (id.equals("0")) return;
+
+            if (!id.matches("\\d+")) {
+                System.out.println("序号应为正整数");
+                continue;
+            }
+
+            break;
+
+        }
+
+
+        for (Courses c : courseSet) {
+
+
+            //找到该序号课程
+            if (c.getKey() == Integer.parseInt(id)) {
+
+                System.out.println("找到序号为" + id + "课程");
+                System.out.println("课程名称：" + c.getCourseName());
+                System.out.println("课程学分：" + c.getScore());
+                System.out.println("课程信息：" + c.getInformation());
+                System.out.println("课程已选人数" + c.getNumberChoose());
+                System.out.print("请输入yes以删除，输入其他以取消删除:\n>");
+
+                String choice = sc.next();
+
+                if (choice.equalsIgnoreCase("yes")) {
+
+                    //遍历学生集合，对每个符合要求的学生执行一次退课操作
+                    for (Students s : studentSet) {
+
+
+                        //如果没选这门课，跳过该学生
+                        if (!s.getClassHadSelected().contains(c.getCourseName()))
+                            continue;
+
+                        String[] drop = s.getClassHadSelected().split("\\+");
+
+                        //拆散选课信息
+                        for (int i = 0; i < drop.length; i++) {
+                            if (drop[i].equals(c.getCourseName())) {
+                                drop[i] = "";
+                                break;
+                            }
+                        }
+
+                        String classInformation = drop[0];
+
+                        //重新组装选课信息
+                        for (int i = 1; i < drop.length; i++) {
+
+                            if (!drop[i].equals("")) {
+
+                                if (drop[0].equals("") && i == 1) {
+                                    classInformation += drop[i];
+                                    continue;
+                                }
+
+                                classInformation += "+" + drop[i];
+                            }
+                        }
+
+                        String sql = "UPDATE student.students SET students_classHadSelected = ?," +
+                                "students_classNumber = ? WHERE students_id = ?";
+
+                        //更新学生表信息
+                        MyUpdate.update(sql, connection, classInformation, s.getClassNumber() - 1, s.getId());
+
+
+                    }
+
+                    //由于联结，先删除选课表中该课程信息
+                    String deleteSql = "DELETE FROM `student`.`student_courses` WHERE sc_key = ?";
+
+                    MyUpdate.update(deleteSql, connection, c.getKey());
+
+                    //再删除课程表该课程信息
+                    deleteSql = "DELETE FROM `student`.`courses` WHERE courses_key = ?";
+
+                    MyUpdate.update(deleteSql, connection, c.getKey());
+
+                    System.out.println("删除成功");
+
+                } else {
+                    System.out.println("取消删除");
+                    return;
+                }
+
+            }
+
+        }
+
+    }
+
 
     private void insertCourse(Connection connection) throws Exception {
 
@@ -135,8 +256,6 @@ public class AdminLogin {
                         //切割字符串成2，67
                         String[] week = {"0", "一", "二", "三", "四", "五", "六", "日"};
                         String[] timeSplit = time.split("-");
-                        System.out.println("timeSplit[0] = " + timeSplit[0]);
-                        System.out.println("timeSplit[1] = " + timeSplit[1]);
 
                         //拼接字符串
                         for (int i = 1; i < week.length; i++) {
@@ -398,44 +517,6 @@ public class AdminLogin {
 
     }
 
-    /*
-     *
-     * 👇更新手机号码——查找
-     * 方法已淘汰
-     *
-     * */
-
-    /*
-    private void updatePhoneNumber(Connection connection) throws Exception {
-
-
-        System.out.println("请输入学生的学号或原手机号");
-        String number = sc.next();
-
-        //如果输入匹配正则表达式
-        if (number.matches("1[3-9][0-9]{9}")) {
-
-            //从学生表中搜索这个手机号
-            String sql = "SELECT * FROM student.students WHERE students_phoneNumber = ?";
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setString(1, number);
-            ResultSet rs = ps.executeQuery();
-            renewPhone(connection, rs, ps);
-
-        } else if (number.matches("\\d+")) {
-
-            String sqlId = "SELECT * FROM student.students WHERE students_id = ?";
-            PreparedStatement ps = connection.prepareStatement(sqlId);
-            ps.setString(1, number);
-            ResultSet rs = ps.executeQuery();
-            renewPhone(connection, rs, ps);
-        } else {
-            System.out.println("您输入的不是学号，也不是手机号");
-        }
-
-    }
-    */
-
 
 
     /*
@@ -506,48 +587,6 @@ public class AdminLogin {
 
         }
 
-    /*方法已淘汰
-
-    private void renewPhone(Connection connection, ResultSet rs, PreparedStatement ps) throws SQLException {
-        // 如果找到匹配的记录
-
-        if (rs.next()) {
-
-            System.out.println("找到学生信息：");
-            System.out.println("学号：" + rs.getLong("students_id"));
-            System.out.println("姓名：" + rs.getString("students_name"));
-            System.out.println("手机号：" + rs.getString("students_phoneNumber"));
-
-            while (true) {
-                System.out.println("请输入修改后的手机号(输入0以取消修改):\n>");
-                String phone = sc.next();
-
-                if (phone.equals("0")) return;
-
-                if (!phone.matches("1[3-9][0-9]{9}")) {
-                    System.out.println("您输入的手机号不符合格式");
-                    continue;
-                }
-
-                String sqlPhone = "UPDATE student.students SET students_phoneNumber = ? WHERE students_id = ?";
-                ps = connection.prepareStatement(sqlPhone);
-
-                ps.setString(1, phone);
-                ps.setString(2, rs.getString("students_id"));
-
-                if (ps.executeUpdate() > 0) {
-                    System.out.println("修改成功");
-                    return;
-                }
-            }
-
-
-        } else {
-            System.out.println("您输入的手机号或学号不存在");
-        }
-
-         */
-
     }
 
 
@@ -561,46 +600,13 @@ public class AdminLogin {
 
 
     private static void searchAllStudent(Connection connection) throws SQLException {
-        /*
-        String sql = "select * from student.students";
 
-        //获取pstmt对象
-        PreparedStatement pstmt = connection.prepareStatement(sql);
-
-        ResultSet rs = pstmt.executeQuery();
-
-        while (rs.next()) {
-
-            //如果是管理员，不打印
-            if (rs.getInt("students_classNumber") < 0) continue;
-
-            System.out.println(rs.getInt(1) + " " + rs.getString(8)
-                    + " " + rs.getString(2) + " " + rs.getString(3)
-                    + " " + rs.getString(4) + " " + rs.getString(5)
-                    + " " + rs.getString(6) + " " + rs.getString(7));
-
-        }
-
-        rs.close();
-        pstmt.close();
-
-         */
-
-        /*
-         * 👆上边的方法是老方法
-         *
-         *
-         * 👇下边的方法是用自定义工具类实现
-         *
-         * */
-
-        MySearch.searchToList("SELECT students_id `id`, students_name `name`" +
+        MySearch.searchToList("SELECT students_id `id`, students_name `name`, students_classNumber `classNumber`" +
                 ", students_phoneNumber `phoneNumber`, students_classHadSelected `classHadSelected`" +
                 ",students_idNumber `idNumber`, students_birthday `birthday`, students_gender `gender`" +
                 "FROM student.students WHERE students_classNumber>=0", connection, Students.class).forEach(System.out::println);
 
     }
-
 
 
 
@@ -622,7 +628,8 @@ public class AdminLogin {
                 "5. 查询某课程的学生名单\n" +
                 "6. 查询某学生的选课情况\n" +
                 "7. 增设课程\n" +
-                "8. 退出\n" +
+                "8. 删除课程\n" +
+                "9. 退出\n" +
                 "请选择操作（输入 1-8）：");
     }
 
