@@ -146,7 +146,8 @@ public class MySearch {
 
 
             if (rs.next()) {
-               t = clazz.newInstance();
+
+                t = clazz.newInstance();
 
                 for (int i = 1; i <= metaData.getColumnCount(); i++) {
 
@@ -164,6 +165,9 @@ public class MySearch {
                     field.set(t, value);
                 }
 
+            }
+            if (rs.next()) {
+                System.out.println("检测到多个结果，但本方法只能返回一个，若要全部返回，请更换searchToList或searchToSet方法");
             }
         } catch (Exception e) {
             e.printStackTrace();
