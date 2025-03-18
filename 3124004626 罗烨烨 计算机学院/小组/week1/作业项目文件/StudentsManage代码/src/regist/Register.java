@@ -31,6 +31,12 @@ public class Register {
             //将第一个问号设置为用户名
             System.out.printf("===== 用户注册 =====\n" + "请输入用户名：\n> ");
             String name = sc.next();
+
+            if(name.equals("0")){
+                System.out.println("好歹起个非零的用户名吧");
+                continue;
+            }
+
             Boolean exist = false;
 
             if(name.length()>=30){
