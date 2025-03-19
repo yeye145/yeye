@@ -17,7 +17,7 @@ public class StartMain {
 
 
         //程序入口
-        Manage.app();
+        homePage.app();
 
 
     }
