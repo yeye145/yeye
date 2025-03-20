@@ -1,6 +1,6 @@
 package services;
 
-public class menu {
+public class Menu {
 
     /*
      *

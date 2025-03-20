@@ -9,7 +9,7 @@ import java.sql.Connection;
 import java.util.Scanner;
 import java.util.Set;
 
-public class insert {
+public class Insert {
 
 
     /*

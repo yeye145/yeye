@@ -10,7 +10,7 @@ import java.sql.Connection;
 import java.util.Scanner;
 import java.util.Set;
 
-public class update {
+public class Update {
 
     /*
      *
@@ -94,8 +94,8 @@ public class update {
 
     /*
      *
-     *
-     *👇更新手机号码
+     * 管理员
+     *👇更新学生手机号码
      *
      *
      * */
@@ -167,7 +167,7 @@ public class update {
 
     /*
      *
-     *
+     * 管理员
      * UPDATE_COURSE_SCORE -> updateScore(connection);
      * 👇修改某门课程的学分
      *

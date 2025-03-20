@@ -5,11 +5,11 @@ import javabean.people.Students;
 
 import myHandWriteTool.MySearch;
 
-import services.delete;
-import services.menu;
-import services.update;
-import services.studentSearch;
-import services.insert;
+import services.Delete;
+import services.Menu;
+import services.Update;
+import services.StudentSearch;
+import services.Insert;
 
 import java.sql.Connection;
 import java.util.Scanner;
@@ -51,17 +51,26 @@ public class StudentLogin {
                     " FROM student.courses", connection, Courses.class);
 
 
-            menu.student();
+            Menu.student();
 
             String choice = sc.next();
 
             switch (choice) {
-                case SEARCH_COURSE_CAN_SELECT -> studentSearch.searchCourseCanSelect(connection);
-                case SELECT_COURSE -> insert.selectCourse(connection, courseSet, s);
-                case DROP_COURSE -> delete.dropCourse(connection, courseSet, s);
-                case LOOK_MY_SELECT -> studentSearch.myself(s, courseSet);
-                case UPDATE_PHONE -> update.updatePhoneByStudent(connection, users_key);
-                case EXIT -> System.exit(0);
+
+                case SEARCH_COURSE_CAN_SELECT -> StudentSearch.searchCourseCanSelect(connection);
+
+                case SELECT_COURSE -> Insert.selectCourse(connection, courseSet, s);
+
+                case DROP_COURSE -> Delete.dropCourse(connection, courseSet, s);
+
+                case LOOK_MY_SELECT -> StudentSearch.myself(s, courseSet);
+
+                case UPDATE_PHONE -> Update.updatePhoneByStudent(connection, users_key);
+
+                case EXIT -> {
+                    connection.close();
+                    System.exit(0);
+                }
 
                 default -> System.out.println("请输入数字1~6");
 

@@ -29,7 +29,7 @@ public class AdminLogin {
         while (true) {
 
             //打印菜单
-            menu.admin();
+            Menu.admin();
 
             //从键盘获取选择
             String choice = sc.next();
@@ -37,23 +37,28 @@ public class AdminLogin {
             switch (choice) {
 
 
-                case SEARCH_ALL_STUDENT -> adminSearch.searchAllStudent(connection);
+                case SEARCH_ALL_STUDENT -> AdminSearch.searchAllStudent(connection);
 
-                case UPDATE_STUDENT_PHONE_NUMBER -> update.updatePhoneByAdmin(connection);
+                case UPDATE_STUDENT_PHONE_NUMBER -> Update.updatePhoneByAdmin(connection);
 
-                case SEARCH_ALL_COURSE -> adminSearch.searchAllCourse(connection);
+                case SEARCH_ALL_COURSE -> AdminSearch.searchAllCourse(connection);
 
-                case UPDATE_COURSE_SCORE -> update.updateScore(connection);
+                case UPDATE_COURSE_SCORE -> Update.updateScore(connection);
 
-                case SEARCH_COURSE_WHO_CHOOSE -> adminSearch.searchCourseStudent(connection);
+                case SEARCH_COURSE_WHO_CHOOSE -> AdminSearch.searchCourseStudent(connection);
 
-                case SEARCH_ONE_CHOOSE_WHICH -> adminSearch.searchOneChoose(connection);
+                case SEARCH_ONE_CHOOSE_WHICH -> AdminSearch.searchOneChoose(connection);
 
-                case INSERT_COURSE -> insert.insertCourse(connection);
+                case INSERT_COURSE -> Insert.insertCourse(connection);
 
-                case DELETE_COURSE -> delete.deleteCourse(connection);
+                case DELETE_COURSE -> Delete.deleteCourse(connection);
 
-                case EXIT -> System.exit(0);
+                case EXIT -> {
+                    connection.close();
+                    System.exit(0);
+                }
+
+
 
                 default -> System.out.println("您的输入有误");
 

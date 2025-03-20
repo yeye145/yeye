@@ -10,7 +10,7 @@ import java.sql.Connection;
 
 import java.util.Set;
 
-public class studentSearch {
+public class StudentSearch {
 
 
     /*
