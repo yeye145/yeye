@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vue实现静态网页</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="vueLogin.css"/>
+</head>
+
+
+<body>
+
+
+<div id="app">
+
+    <!-- 登录/注册框的设置 -->
+    <div class="container">
+
+        <!-- 登录/注册框的设置 -->
+        <div class="wrapper">
+
+
+            <h2>当前您正在：{{way}}</h2>
+
+
+            <br>
+
+            <!--注册界面-->
+            <div v-if="isLogin">
+
+                <form action="#" method="post" @submit.prevent="submitCheck">
+                    <label>
+                        手机号：
+                        <br>
+                        <input type="text" v-model="setPhone">
+                        <br>
+                        <span class="error">{{ errors.setPhone }}</span>
+                    </label>
+
+
+                    <label>
+                        邮箱：
+                        <br>
+                        <input type="text" v-model="setEmail">
+                        <br>
+                        <span class="error">{{ errors.setEmail }}</span>
+                    </label>
+
+
+                    <label>
+                        密码：
+                        <br>
+                        <input type="text" v-model="setPassword">
+                        <br>
+                        <span class="error">{{ errors.setPassword }}</span>
+                    </label>
+
+
+                    <label>
+                        确认密码：
+                        <br>
+                        <input type="text" v-model="setPasswordAgain">
+                        <br>
+                        <span class="error">{{ errors.setPasswordAgain }}</span>
+                    </label>
+
+
+                </form>
+
+            </div>
+
+            <!--  登录界面  -->
+            <div v-else>
+
+                <form action="#" method="post" @submit.prevent="submitCheck">
+                    <label>
+                        手机号/邮箱：
+                        <br>
+                        <input type="text" v-model="loginAccount">
+                        <br>
+                        <span class="error">{{ errors.loginAccount }}</span>
+                    </label>
+                    <br>
+
+                    <label>
+                        登录密码：
+                        <br>
+                        <input type="text" v-model="loginPassword">
+                        <br>
+                        <span class="error">{{ errors.loginPassword }}</span>
+                    </label>
+
+                </form>
+            </div>
+            <br>
+
+            <!-- 提交按钮 -->
+            <button type="submit" class="button" @click="submitCheck">
+
+                {{ isLogin ? '完成注册' : '立即登录' }}
+
+            </button>
+
+            <br>
+
+            <!-- 登录/注册框的切换 -->
+            <h4 @click="turnWay">{{turn}}</h4>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+
+
+            isLogin: false,
+            way: '登录',
+            turn: "还没有账号？点我注册",
+
+            setPassword: '',
+            setPasswordAgain: '',
+            setPhone: '',
+            setEmail: '',
+
+            loginAccount: '',
+            loginPassword: '',
+
+            errors: {}
+
+        },
+
+        methods: {
+
+            // 改变登录 / 注册状态
+            turnWay() {
+                this.turn = this.isLogin ? "还没有账号？点我注册" : "回到登录"
+                this.isLogin = !this.isLogin;
+                this.way = this.isLogin ? '注册' : '登录';
+
+            },
+
+            // 查看注册情况
+            showSetWhat() {
+                alert("手机号码：" + this.setPhone +
+                    "\n邮箱：" + this.setEmail +
+                    "\n登录密码：" + this.setPassword);
+            },
+
+            // 查看登录情况
+            showLoginWhat() {
+                alert("账号：" + this.loginAccount +
+                    "\n密码：" + this.loginPassword);
+            },
+
+            // 提交时候的验证
+            submitCheck() {
+
+                this.errors = {}
+
+                var ifSuccess = true;
+
+                if (this.isLogin) {
+
+                    if (!this.setPhone) {
+                        this.errors.setPhone = '!!!请输入手机号'
+                        ifSuccess = false;
+                    } else {
+                        const phoneRegex = /^1[3-9]\d{9}$/;
+                        if (!phoneRegex.test(this.setPhone)) {
+                            this.errors.setPhone = '!!!手机号码不符合中国大陆'
+                            ifSuccess = false;
+                        }
+                    }
+
+                    if (!this.setEmail) {
+                        this.errors.setEmail = '!!!请输入邮箱'
+                        ifSuccess = false;
+                    } else {
+                        const emailRegex = /^\w+@\w+$/;
+                        if (!emailRegex.test(this.setEmail)) {
+                            this.errors.setEmail = '!!!邮箱格式应为??? + @ + ???'
+                            ifSuccess = false;
+                        }
+                    }
+
+                    if (!this.setPassword) {
+                        this.errors.setPassword = '!!!请输入密码'
+                        ifSuccess = false;
+                    }
+
+                    if (!this.setPasswordAgain) {
+                        this.errors.setPasswordAgain = '!!!请再次输入密码'
+                        ifSuccess = false;
+                    }
+
+                    if (this.setPassword && this.setPasswordAgain && this.setPassword !== this.setPasswordAgain) {
+                        this.errors.setPasswordAgain = '!!!两次输入密码不一致'
+                        ifSuccess = false;
+                    }
+
+                    if (ifSuccess) {
+                        this.showSetWhat()
+                    }
+                } else {
+                    if (!this.loginAccount) {
+                        this.errors.loginAccount = '!!!请输入手机号/邮箱'
+                        ifSuccess = false;
+                    }
+                    if (!this.loginPassword) {
+                        this.errors.loginPassword = '!!!请输入密码'
+                        ifSuccess = false;
+                    }
+                    if (ifSuccess) {
+                        this.showLoginWhat()
+                    }
+                }
+            },
+
+        }
+    })
+
+
+</script>
+</body>
+</html>

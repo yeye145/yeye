@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>vue学习</title>
+</head>
+
+
+<body>
+
+<div id="app">
+
+    <button @click="minus">-</button>
+
+    {{message}}
+
+    <input type="button" value="+" @click="plus">
+
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            message: 1
+        },
+
+        methods:{
+
+            plus(){
+                if(this.message===3){
+                    alert("头顶怎么渐渐的")
+                    return
+                }
+                this.message++
+            },
+
+            minus(){
+                if(this.message === 0){
+                    alert("我是有底线的")
+                    return
+                }
+                this.message--
+            }
+
+        }
+    })
+
+</script>
+
+</body>
+
+
+</html>
