@@ -93,3 +93,14 @@ label {
     position: relative;
     min-height: 100vh;
 }
+
+/* 设置注册 / 登录界面的隐藏 */
+.form-panel {
+    display: none;
+    opacity: 0;
+}
+
+.form-panel.active {
+    display: block;
+    opacity: 1;
+}

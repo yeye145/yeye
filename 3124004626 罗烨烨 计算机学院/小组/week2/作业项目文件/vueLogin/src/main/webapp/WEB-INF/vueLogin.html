@@ -27,7 +27,7 @@
             <br>
 
             <!--注册界面-->
-            <div v-if="isLogin">
+            <div class="form-panel" :class="{active: isLogin}">
 
                 <form action="#" method="post" @submit.prevent="submitCheck">
                     <label>
@@ -51,7 +51,7 @@
                     <label>
                         密码：
                         <br>
-                        <input type="text" v-model="setPassword">
+                        <input type="password" v-model="setPassword">
                         <br>
                         <span class="error">{{ errors.setPassword }}</span>
                     </label>
@@ -60,7 +60,7 @@
                     <label>
                         确认密码：
                         <br>
-                        <input type="text" v-model="setPasswordAgain">
+                        <input type="password" v-model="setPasswordAgain">
                         <br>
                         <span class="error">{{ errors.setPasswordAgain }}</span>
                     </label>
@@ -71,7 +71,7 @@
             </div>
 
             <!--  登录界面  -->
-            <div v-else>
+            <div class="form-panel" :class="{active: !isLogin}">
 
                 <form action="#" method="post" @submit.prevent="submitCheck">
                     <label>
@@ -86,7 +86,7 @@
                     <label>
                         登录密码：
                         <br>
-                        <input type="text" v-model="loginPassword">
+                        <input type="password" v-model="loginPassword">
                         <br>
                         <span class="error">{{ errors.loginPassword }}</span>
                     </label>
