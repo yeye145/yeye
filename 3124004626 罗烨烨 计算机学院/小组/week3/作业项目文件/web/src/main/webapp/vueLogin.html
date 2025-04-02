@@ -199,6 +199,7 @@
 
                 let ifSuccess = true;
 
+                // 注册
                 if (that.isLogin) {
 
                     if (!that.setPhone) {
@@ -262,6 +263,8 @@
                             });
                     }
                 } else {
+
+                    // 登录
                     if (!that.loginAccount) {
                         that.errors.loginAccount = '!!!请输入手机号/邮箱'
                         ifSuccess = false;
@@ -291,8 +294,13 @@
                             }).then((response) => {
                             // 请求成功处理
                             if (response.data.code === 200) { // 后端返回200表示成功
-                                // 跳转到主页或目标页面
-                                window.location.href = 'studentLogin.html';
+                                // 管理员登录
+                                if (response.data.message === "admin") {
+                                    window.location.href = 'adminLogin.html';
+                                } else {
+                                    window.location.href = 'studentLogin.html';
+                                }
+
                             } else {
                                 alert(response.data.message);
                             }

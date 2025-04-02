@@ -1,0 +1,113 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f5f5f5;
+    margin-top: 20px;
+}
+
+.left-column {
+    max-width: 1200px;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    left: 0;             /* 紧贴左侧 */
+    top: 0;              /* 从顶部开始 */
+    height: 900%;        /* 和顶栏等高 */
+    width: 250px;          /* 白条宽度 */
+    margin-top: 49px;
+}
+
+
+.top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    background-color: #000;
+    display: flex;          /* 使用弹性布局 */
+    justify-content: flex-end; /* 内容右对齐 */
+    align-items: center;     /* 垂直居中 */
+    padding: 0 20px;        /* 左右内边距 */
+    z-index: 1000;
+}
+
+.top-bar-title {
+    color: white;
+    margin: 0;
+    font-size: 20px;
+    margin-right: 80px;
+}
+
+/* 登录 / 注册切换 */
+.left-column-work {
+    cursor: pointer;
+    transition: color 0.1s;
+}
+
+/* 鼠标悬停效果 */
+.left-column-work:hover {
+    color: #5e5b5b;
+    text-decoration: underline;
+}
+
+.right-column {
+    position: fixed;
+    left: 290px;
+    top: 50px;
+    right: 0;
+    bottom: 0;
+    overflow-y: auto;
+    padding: 20px;
+    background-color: #e1e1e1;
+    box-sizing: border-box;
+}
+
+#app .right-column table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 14px;
+
+}
+
+
+#app .right-column td {
+    padding: 12px 15px;
+    text-align: center;
+    border-bottom: 1px solid #e9ecef;
+
+}
+
+#app .right-column th {
+    background-color: #f8f9fa;
+    padding: 12px 15px;
+    text-align: center;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #e9ecef;
+}
+
+#app .right-column tr {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e9ecef;
+    vertical-align: top;
+    background-color: #f8f9fa;
+}
+
+/* 单独设置第一个和最后一个单元格的圆角 */
+#app .right-column tr:first-child th:first-child {
+    border-top-left-radius: 10px;
+}
+#app .right-column tr:first-child th:last-child {
+    border-top-right-radius: 10px;
+}
+#app .right-column tr:last-child td:first-child {
+    border-bottom-left-radius: 10px;
+}
+#app .right-column tr:last-child td:last-child {
+    border-bottom-right-radius: 10px;
+}
+

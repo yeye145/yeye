@@ -15,7 +15,7 @@
     <div class="left-column">
 
         <!-- 功能区域 -->
-        <h2 style="text-align: center;" title="学生信息管理">——学生信息管理——</h2>
+        <h2 style="text-align: center;" title="学生登录">——学生信息管理——</h2>
         <hr>
         <br>
         <li class="left-column-work">修改号码</li>
@@ -28,8 +28,8 @@
         <h3>📚个人信息</h3>
         <div>👤姓名：{{studentInfo.name}}</div>
         <br>
-        <div v-if="studentInfo.phoneNumber" v-bind:title="studentInfo.phone">
-            📞号码：{{studentInfo.phoneNumber.substring(0, 3) + '****' + studentInfo.phoneNumber.substring(7, 11)}}
+        <div v-if="studentInfo.phoneNumber">
+            📞号码：{{studentInfo.phoneNumber}}
         </div>
         <br>
         <div>📮邮箱：{{studentInfo.email}}</div>
@@ -85,7 +85,7 @@
                 }
                 // 页面加载完成后，发送异步请求，查询数据
                 let that = this;
-                axios.post('/look-myself',{})
+                axios.post('/student/mLook',{})
                     .then(response => {
                         if (response.data.code === 200) {
                             that.studentInfo = response.data.data; // 个人信息
@@ -109,7 +109,7 @@
                 coursesSelect() {
                     this.isSelect = true;
                     let that = this;
-                    axios.get('/studentlll', {}).then(response => {
+                    axios.get('/student/scLook', {}).then(response => {
                         that.coursesCanSelect = response.data;
                     })
                 }

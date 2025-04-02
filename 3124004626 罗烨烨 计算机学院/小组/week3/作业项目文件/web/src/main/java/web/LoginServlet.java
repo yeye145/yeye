@@ -89,7 +89,14 @@ public class LoginServlet extends HttpServlet {
     private void checkPassword(HttpServletResponse response, Users user, String password) throws IOException {
         if (user.getPassword().equals(password)) {
             this.studentAccount = user.getPhoneNumber();
-            response.getWriter().write("{\"code\":200, \"message\":\"登录成功\"}");
+
+            if (user.getIsAdmin() == 2) {
+                System.out.println("管理员" + user.getIsAdmin());
+                response.getWriter().write("{\"code\":200, \"message\":\"admin\"}");
+            } else {
+                System.out.println("学生" + user.getIsAdmin());
+                response.getWriter().write("{\"code\":200, \"message\":\"student\"}");
+            }
             System.out.println("登录成功！" + this.studentAccount);
         } else {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

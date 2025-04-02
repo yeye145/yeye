@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>学生管理系统</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="studentLogin.css"/>
+</head>
+<body>
+<div class="top-bar">
+    <h2 class="top-bar-title">学生选课系统</h2>
+</div>
+<div id="app">
+    <div class="left-column">
+        <!-- 功能区域 -->
+        <h2 style="text-align: center;" title="管理员登录">——学生信息管理——</h2>
+        <hr>
+        <br>
+        <li class="left-column-work">增设课程</li>
+        <br>
+        <li class="left-column-work">课程操作</li>
+        <br>
+        <li class="left-column-work" @click="turnAllCourse">课程查询</li>
+        <br>
+        <li class="left-column-work" @click="turnAllStudent">学生查询</li>
+        <br>
+
+    </div>
+
+    <div class="right-column">
+        <table v-if="ifAllCourses">
+            <tr>
+                <th>课程序号</th>
+                <th>课程名称</th>
+                <th>课程信息</th>
+                <th>课程学分</th>
+                <th>是否可选</th>
+                <th>最大可选</th>
+                <th>当前已选</th>
+            </tr>
+            <tr v-for="ac in allCourses">
+                <td>{{ac.key}}</td>
+                <td>{{ac.courseName}}</td>
+                <td>{{ac.information}}</td>
+                <td>{{ac.score}}</td>
+                <td>{{ac.ifCanChoose}}</td>
+                <td>{{ac.numberCanChoose}}</td>
+                <td>{{ac.numberChoose}}</td>
+
+            </tr>
+        </table>
+
+        <table v-if="ifAllStudents">
+            <tr>
+                <th>学生序号</th>
+                <th>学生姓名</th>
+                <th>手机号码</th>
+                <th>邮箱</th>
+                <th>已选课程名称</th>
+                <th>已选课程总数</th>
+                <th>性别</th>
+            </tr>
+            <tr v-for="s in allStudents">
+                <td>{{s.id}}</td>
+                <td>{{s.name}}</td>
+                <td>{{s.phoneNumber}}</td>
+                <td>{{s.email}}</td>
+                <td>{{s.classHadSelected}}</td>
+                <td>{{s.classNumber}}</td>
+                <td>{{s.gender}}</td>
+
+            </tr>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/axios/1.6.7/axios.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.14/vue.min.js"></script>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            ifAllCourses: false,
+            ifAllStudents: false,
+            allCourses: [],
+            allStudents: [],
+        },
+        mounted() {
+            let that = this;
+            axios.post('/student/cLook').then(response => {
+                that.allCourses = response.data;
+                that.allCourses.ifCanChoose === 1 ? "是": "否"
+            })
+            axios.post('/admin/sLook').then(response => {
+                that.allStudents = response.data;
+            })
+        },
+        methods: {
+            turnAllCourse() {
+                this.ifAllCourses = true;
+                this.ifAllStudents = false;
+            },
+            turnAllStudent() {
+                this.ifAllCourses = false;
+                this.ifAllStudents = true;
+            }
+        }
+    })
+
+</script>
+</body>
+</html>
