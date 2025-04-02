@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>学生管理系统</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="studentLogin.css"/>
+</head>
+<body>
+<div class="top-bar">
+    <h2 class="top-bar-title">学生选课系统</h2>
+</div>
+<div id="app">
+    <div class="left-column">
+
+        <!-- 功能区域 -->
+        <h2 style="text-align: center;" title="学生信息管理">——学生信息管理——</h2>
+        <hr>
+        <br>
+        <li class="left-column-work">修改号码</li>
+        <br>
+        <li class="left-column-work" @click="coursesSelect">可选课程</li>
+        <br>
+        <li class="left-column-work">我的课程</li>
+        <br>
+        <hr>
+        <h3>📚个人信息</h3>
+        <div>👤姓名：{{studentInfo.name}}</div>
+        <br>
+        <div v-if="studentInfo.phoneNumber" v-bind:title="studentInfo.phone">
+            📞号码：{{studentInfo.phoneNumber.substring(0, 3) + '****' + studentInfo.phoneNumber.substring(7, 11)}}
+        </div>
+        <br>
+        <div>📮邮箱：{{studentInfo.email}}</div>
+        <br>
+        <div>🎂生日：{{studentInfo.birthday}}</div>
+        <br>
+        <div v-bind:title="studentInfo.classHadSelected">📝已选课程数：{{studentInfo.classNumber}}</div>
+        <br>
+        <div>📌最多只能选5门课程哦！</div>
+        <br>
+        <hr>
+
+    </div>
+
+    <div class="right-column">
+        <table v-if="isSelect">
+            <tr>
+                <th>课程序号</th>
+                <th>课程名称</th>
+                <th>课程信息</th>
+                <th>课程学分</th>
+                <th>课程操作</th>
+            </tr>
+            <tr v-for="couCanSel in coursesCanSelect">
+                <td>{{couCanSel.key}}</td>
+                <td>{{couCanSel.courseName}}</td>
+                <td>{{couCanSel.information}}</td>
+                <td>{{couCanSel.score}}</td>
+                <td class="left-column-work">
+                    选课
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/axios/1.6.7/axios.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.14/vue.min.js"></script>
+
+<script>
+
+    new Vue({
+            el: '#app',
+            data: {
+                studentInfo: {},// 存储学生个人信息
+                coursesCanSelect: [],
+                isSelect: false
+            },
+            mounted() {
+                if (typeof axios === 'undefined') {
+                    console.error('Axios is not loaded!');
+                    return;
+                }
+                // 页面加载完成后，发送异步请求，查询数据
+                let that = this;
+                axios.post('/look-myself',{})
+                    .then(response => {
+                        if (response.data.code === 200) {
+                            that.studentInfo = response.data.data; // 个人信息
+                        }
+                        else if (response.data.code === 401) {
+                            alert("您还未登录！");
+                            window.location.href = '/vueLogin.html';
+                        } else {
+                            console.error('获取数据失败:', response.data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('请求错误:', error);
+                    });
+            },
+            created() {
+                this.coursesSelect();
+                this.isSelect = false;
+            },
+            methods: {
+                coursesSelect() {
+                    this.isSelect = true;
+                    let that = this;
+                    axios.get('/studentlll', {}).then(response => {
+                        that.coursesCanSelect = response.data;
+                    })
+                }
+            }
+        },
+    )
+
+</script>
+</body>
+</html>

@@ -13,21 +13,14 @@
 
 
 <div id="app">
-
     <!-- 登录/注册框的设置 -->
     <div class="container">
-
         <!-- 登录/注册框的设置 -->
         <div class="wrapper">
 
-
             <h2>当前您正在：{{way}}</h2>
 
-
             <br>
-
-
-
 
             <!--注册界面-->
             <div class="form-panel" :class="{active: isLogin && !showForgotPassword}">
@@ -70,12 +63,7 @@
 
 
                 </form>
-
             </div>
-
-
-
-
 
 
             <!-- 修改密码界面 -->
@@ -110,11 +98,6 @@
             </div>
 
 
-
-
-
-
-
             <!--  登录界面  -->
             <div class="form-panel" :class="{active: !isLogin && !showForgotPassword}">
 
@@ -142,10 +125,6 @@
             <br>
 
 
-
-
-
-
             <!-- 提交按钮 -->
             <button class="button" @click="showForgotPassword ? submitChangePassword() : submitCheck()">
                 {{ showForgotPassword ? '确认修改' : (isLogin ? '完成注册' : '立即登录') }}
@@ -160,10 +139,9 @@
     </div>
 </div>
 
-<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-
+<script src="https://cdn.bootcdn.net/ajax/libs/axios/1.6.7/axios.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.14/vue.min.js"></script>
 
 <script>
     var app = new Vue({
@@ -272,24 +250,14 @@
                                 }
                             }).then((response) => {
                             // 请求成功处理
-                            if (response.data.code === 200) { // 假设后端返回200表示成功
-                                // 1. 存储token（如果有）
-                                localStorage.setItem('token', response.data.token);
-
-                                // 2. 跳转到主页或目标页面
-                                // that.$router.push('/dashboard'); // Vue路由跳转
-                                // 或 window.location.href = '/dashboard'; // 普通页面跳转
-
-                                // 3. 显示成功提示
-                                that.$message.success('注册成功！'); // Element UI提示
-                                // 或 alert('登录成功！');
+                            if (response.data.code === 200) { // 后端返回200表示成功
+                                //  显示成功提示
+                                that.$message.success('注册成功！');
                             }
                         })
                             .catch((error) => {
                                 if (error.response && error.response.data.error) {
                                     alert(error.response.data.error); // 显示后端返回的具体错误
-                                } else {
-                                    alert("注册失败，请检查网络连接");
                                 }
                             });
                     }
@@ -322,35 +290,30 @@
                                 }
                             }).then((response) => {
                             // 请求成功处理
-                            if (response.data.code === 200) { // 假设后端返回200表示成功
-                                // 1. 存储token（如果有）
-                                localStorage.setItem('token', response.data.token);
-
-                                // 2. 跳转到主页或目标页面
-                                // that.$router.push('/dashboard'); // Vue路由跳转
-                                // 或 window.location.href = '/dashboard'; // 普通页面跳转
-
-                                // 3. 显示成功提示
-                                that.$message.success('登录成功！'); // Element UI提示
-
+                            if (response.data.code === 200) { // 后端返回200表示成功
+                                // 跳转到主页或目标页面
+                                window.location.href = 'studentLogin.html';
+                            } else {
+                                alert(response.data.message);
                             }
                         })
                             .catch((error) => {
                                 if (error.response && error.response.data.error) {
                                     alert(error.response.data.error); // 显示后端返回的具体错误
-                                } else {
-                                    alert("注册失败，请检查网络连接");
                                 }
                             });
                     }
                 }
             },
 
+
+            // 忘记密码
             forgetPassword() {
                 this.showForgotPassword = true;
                 this.way = '修改密码';
                 this.turn = "回到登录";
             },
+
 
             // 处理修改密码提交
             submitChangePassword() {
@@ -402,7 +365,7 @@
                             alert(response.data.error);
                         }
                     }).catch(error => {
-                        alert(error.response?.data.error || '网络错误');
+                        alert(error.response.data.error);
                     });
 
                 }

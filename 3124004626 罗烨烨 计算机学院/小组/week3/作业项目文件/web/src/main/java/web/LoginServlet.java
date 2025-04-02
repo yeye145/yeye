@@ -22,6 +22,8 @@ public class LoginServlet extends HttpServlet {
 
     private Connection connection = MyPool.getConnection();
 
+    public static String studentAccount = "";
+
     {
         try {
             this.users = MySearch.searchToSet("SELECT phoneNumber, id, password, isAdmin, email FROM student.users"
@@ -48,27 +50,22 @@ public class LoginServlet extends HttpServlet {
         String username = request.getParameter("username");
         String password = request.getParameter("password");
 
-
+        // 设置学生账号为空
+        studentAccount = "";
 
         try {
-            // 如果不含@则为手机号码登录
-            if (!username.contains("@")) {
-                for (Users user : users) {
-                    if (user.getPhoneNumber().equals(username)) {
-                        checkPassword(response, user, password);
-                        return;
-                    }
-                }
-            } else {
-                for (Users user : users) {
-                    if (user.getEmail().equals(username)) {
-                        checkPassword(response, user, password);
-                        return;
-                    }
+
+            // 遍历集合，找到该用户
+            for (Users user : users) {
+
+                if (user.getPhoneNumber().equals(username) || user.getEmail().equals(username)) {
+                    // 检验密码是不是正确的
+                    checkPassword(response, user, password);
+                    return;
                 }
             }
 
-            // 用户不存在
+            // 401 - 用户不存在
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("{\"error\":\"账号不存在\"}");
             System.out.println("账号不存在！");
@@ -89,13 +86,14 @@ public class LoginServlet extends HttpServlet {
 
     }
 
-    private static void checkPassword(HttpServletResponse response, Users user, String password) throws IOException {
+    private void checkPassword(HttpServletResponse response, Users user, String password) throws IOException {
         if (user.getPassword().equals(password)) {
-            response.getWriter().write("{\"success\":true, \"message\":\"登录成功\"}");
-            System.out.println("登录成功！");
+            this.studentAccount = user.getPhoneNumber();
+            response.getWriter().write("{\"code\":200, \"message\":\"登录成功\"}");
+            System.out.println("登录成功！" + this.studentAccount);
         } else {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("{\"error\":\"密码错误\"}");
+            response.getWriter().write("{\"code\":401, \"error\":\"密码错误\"}");
             System.out.println("密码错误！");
         }
     }
