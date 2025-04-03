@@ -5,11 +5,12 @@ import java.sql.SQLException;
 
 public class MyUpdate {
 
-    public static int update(String sql, Connection connection, Object... args) throws Exception {
+    public static int update(String sql, Object... args) throws Exception {
 
         //更新包括增、删、改
         int row = 0;
 
+        Connection connection = MyPool.getConnection();
         PreparedStatement pstmt = null;
 
         try {
@@ -27,7 +28,10 @@ public class MyUpdate {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            pstmt.close();
+            if (pstmt != null) {
+                pstmt.close();
+            }
+            connection.close();
         }
 
 

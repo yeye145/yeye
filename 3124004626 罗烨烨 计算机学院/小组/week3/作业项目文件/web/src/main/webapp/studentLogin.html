@@ -5,7 +5,7 @@
     <title>学生管理系统</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="studentLogin.css"/>
+    <link rel="stylesheet" href="login.css"/>
 </head>
 <body>
 <div class="top-bar">
@@ -41,7 +41,6 @@
         <div>📌最多只能选5门课程哦！</div>
         <br>
         <hr>
-
     </div>
 
     <div class="right-column">
@@ -85,7 +84,7 @@
                 }
                 // 页面加载完成后，发送异步请求，查询数据
                 let that = this;
-                axios.post('/student/mLook',{})
+                axios.post('/student/mLook')
                     .then(response => {
                         if (response.data.code === 200) {
                             that.studentInfo = response.data.data; // 个人信息
@@ -101,15 +100,13 @@
                         console.error('请求错误:', error);
                     });
             },
-            created() {
-                this.coursesSelect();
-                this.isSelect = false;
-            },
+
             methods: {
+                // 学生 - 查看可选课程
                 coursesSelect() {
                     this.isSelect = true;
                     let that = this;
-                    axios.get('/student/scLook', {}).then(response => {
+                    axios.get('/student/scLook').then(response => {
                         that.coursesCanSelect = response.data;
                     })
                 }

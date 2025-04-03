@@ -21,7 +21,7 @@ import java.util.Set;
 @WebServlet("/student/*")
 public class StudentServlet extends MyBaseServlet {
 
-    private Connection connection = MyPool.getConnection();
+
     private Set<Students> students;
     private Set<Users> users;
 
@@ -31,20 +31,17 @@ public class StudentServlet extends MyBaseServlet {
     {
         try {
             // 获得学生sql信息
-            this.students = MySearch.searchToSet("SELECT * FROM student.students", this.connection, Students.class);
+            this.students = MySearch.searchToSet("SELECT * FROM student.students", Students.class);
 
             // 获得可选课程sql信息
-            this.studentCourses = MySearch.searchToList("SELECT * FROM student.student_courses;", this.connection, StudentCourses.class);
+            this.studentCourses = MySearch.searchToList("SELECT * FROM student.student_courses;", StudentCourses.class);
 
             // 获得可选课程sql信息
-            this.courses = MySearch.searchToList("SELECT * FROM student.courses;", this.connection, Courses.class);
+            this.courses = MySearch.searchToList("SELECT * FROM student.courses;", Courses.class);
 
             // 获得可选课程sql信息
-            this.users = MySearch.searchToSet("SELECT * FROM student.users;", this.connection, Users.class);
+            this.users = MySearch.searchToSet("SELECT * FROM student.users;", Users.class);
 
-
-            // 关闭连接
-            this.connection.close();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -52,32 +49,28 @@ public class StudentServlet extends MyBaseServlet {
 
     // 查看可选课程
     public void scLook(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
         String jsonString = JSON.toJSONString(this.studentCourses);
         System.out.println("可选课程" + jsonString);
         response.getWriter().write(jsonString);
-
     }
     public void cLook(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
         String jsonString = JSON.toJSONString(this.courses);
         System.out.println("全部课程" + jsonString);
         response.getWriter().write(jsonString);
-
     }
 
     // 获得个人信息
     public void mLook(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-        if (LoginServlet.studentAccount.isEmpty()) {
+        if (OtherServlet.studentAccount.isEmpty()) {
             response.getWriter().write("{\"code\":401, \"error\":\"用户不存在！\"}");
-            System.out.println("lookmyself - 未登录");
+            System.out.println("未登录");
             return;
         }
 
-        System.out.println("lookmyself - 电话" + LoginServlet.studentAccount);
+        System.out.println("电话" + OtherServlet.studentAccount);
 
-        String phone = LoginServlet.studentAccount;
+        String phone = OtherServlet.studentAccount;
 
 
         // 查找目标学生信息

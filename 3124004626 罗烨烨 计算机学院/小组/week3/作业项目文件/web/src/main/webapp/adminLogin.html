@@ -5,7 +5,7 @@
     <title>学生管理系统</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="studentLogin.css"/>
+    <link rel="stylesheet" href="login.css"/>
 </head>
 <body>
 <div class="top-bar">
@@ -40,14 +40,13 @@
                 <th>当前已选</th>
             </tr>
             <tr v-for="ac in allCourses">
-                <td>{{ac.key}}</td>
-                <td>{{ac.courseName}}</td>
-                <td>{{ac.information}}</td>
-                <td>{{ac.score}}</td>
-                <td>{{ac.ifCanChoose}}</td>
-                <td>{{ac.numberCanChoose}}</td>
-                <td>{{ac.numberChoose}}</td>
-
+                <td class="left-column-work" @click="turnWhoSelectIt(ac.courseName)">{{ac.key}}</td>
+                <td class="left-column-work" @click="turnWhoSelectIt(ac.courseName)">{{ac.courseName}}</td>
+                <td class="left-column-work" @click="turnWhoSelectIt(ac.courseName)">{{ac.information}}</td>
+                <td class="left-column-work" @click="turnWhoSelectIt(ac.courseName)">{{ac.score}}</td>
+                <td class="left-column-work" @click="turnWhoSelectIt(ac.courseName)">{{ac.ifCanChoose}}</td>
+                <td class="left-column-work" @click="turnWhoSelectIt(ac.courseName)">{{ac.numberCanChoose}}</td>
+                <td class="left-column-work" @click="turnWhoSelectIt(ac.courseName)">{{ac.numberChoose}}</td>
             </tr>
         </table>
 
@@ -61,7 +60,23 @@
                 <th>已选课程总数</th>
                 <th>性别</th>
             </tr>
-            <tr v-for="s in allStudents">
+            <tr v-for="s in allStudents" v-if="!ifWhoSelectIt">
+                <td>{{s.id}}</td>
+                <td>{{s.name}}</td>
+                <td @dblclick="editPhone(s)">
+                    <span v-if="!s._editing">{{s.phoneNumber}}</span>
+                    <input v-else
+                           v-model="s._newPhone"
+                           @blur="savePhone(s)"
+                           @keyup.enter="savePhone(s)"
+                           type="text">
+                </td>
+                <td>{{s.email}}</td>
+                <td>{{s.classHadSelected}}</td>
+                <td>{{s.classNumber}}</td>
+                <td>{{s.gender}}</td>
+            </tr>
+            <tr v-for="s in whoSelectIt" v-if="ifWhoSelectIt">
                 <td>{{s.id}}</td>
                 <td>{{s.name}}</td>
                 <td>{{s.phoneNumber}}</td>
@@ -69,7 +84,6 @@
                 <td>{{s.classHadSelected}}</td>
                 <td>{{s.classNumber}}</td>
                 <td>{{s.gender}}</td>
-
             </tr>
         </table>
     </div>
@@ -84,20 +98,36 @@
         data: {
             ifAllCourses: false,
             ifAllStudents: false,
+            ifWhoSelectIt: false,
             allCourses: [],
             allStudents: [],
+            whoSelectIt: [],
         },
         mounted() {
-            let that = this;
-            axios.post('/student/cLook').then(response => {
-                that.allCourses = response.data;
-                that.allCourses.ifCanChoose === 1 ? "是": "否"
-            })
-            axios.post('/admin/sLook').then(response => {
-                that.allStudents = response.data;
-            })
+            this.refresh();
         },
         methods: {
+            refresh() {
+                let that = this;
+                axios.post('/admin/cLook').then(response => {
+                    if (response.data.code === 401) {
+                        alert("您还未登录！");
+                        window.location.href = '/vueLogin.html';
+                    }
+                    that.allCourses = response.data;
+                    that.allCourses.ifCanChoose === 1
+                        ? that.allCourses.ifCanChoose = "是"
+                        : that.allCourses.ifCanChoose = "否"
+                })
+                axios.post('/admin/sLook').then(response => {
+                    that.allStudents = response.data.map(student => ({
+                        // 使用扩展运算符(...)复制原有的学生对象属性，并添加两个临时新属性用于修改手机号码
+                        ...student,
+                        _editing: false,
+                        _newPhone: student.phoneNumber
+                    }));
+                })
+            },
             turnAllCourse() {
                 this.ifAllCourses = true;
                 this.ifAllStudents = false;
@@ -105,6 +135,50 @@
             turnAllStudent() {
                 this.ifAllCourses = false;
                 this.ifAllStudents = true;
+                this.ifWhoSelectIt = false;
+            },
+            turnWhoSelectIt(cName) {
+                this.ifAllCourses = false;
+                this.ifAllStudents = true;
+                this.ifWhoSelectIt = true;
+                let that = this;
+                axios.post('/admin/whoSelect', new URLSearchParams({
+                    cName: cName
+                }), {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                }).then(response => {
+                    that.whoSelectIt = response.data;
+                })
+            },
+            editPhone(student) {
+                student._editing = true;
+                student._newPhone = student.phoneNumber;
+                // 自动聚焦输入框
+                this.$nextTick(() => {
+                    const input = this.$el.querySelector('input[v-model="s._newPhone"]');
+                    if (input) input.focus();
+                });
+            },
+            savePhone(student) {
+                const phoneRegex = /^1[3-9]\d{9}$/;
+                if (phoneRegex.test(student._newPhone)) {
+                    student.phoneNumber = student._newPhone;
+                    axios.post('/admin/updatePhone', new URLSearchParams({
+                        email: student.email,
+                        newPhone: student._newPhone
+                    }), {
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    }).then(response => {
+                        if (response.data.code !== 200) {
+                            alert("更新手机号失败");
+                        }
+                    });
+                }
+                student._editing = false;
             }
         }
     })

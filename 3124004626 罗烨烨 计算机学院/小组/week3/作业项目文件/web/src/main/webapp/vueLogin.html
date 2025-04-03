@@ -7,8 +7,6 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" href="vueLogin.css"/>
 </head>
-
-
 <body>
 
 
@@ -24,7 +22,6 @@
 
             <!--注册界面-->
             <div class="form-panel" :class="{active: isLogin && !showForgotPassword}">
-
                 <form action="/register" method="post" @submit.prevent="submitCheck">
                     <label>
                         手机号：
@@ -33,8 +30,6 @@
                         <br>
                         <span class="error">{{ errors.setPhone }}</span>
                     </label>
-
-
                     <label>
                         邮箱：
                         <br>
@@ -42,8 +37,20 @@
                         <br>
                         <span class="error">{{ errors.setEmail }}</span>
                     </label>
-
-
+                    <label>
+                        姓名：
+                        <br>
+                        <input type="text" v-model="setName">
+                        <br>
+                        <span class="error">{{ errors.setName }}</span>
+                    </label>
+                    <label>
+                        身份证号：
+                        <br>
+                        <input type="text" v-model="setIdNumber">
+                        <br>
+                        <span class="error">{{ errors.setIdNumber}}</span>
+                    </label>
                     <label>
                         密码：
                         <br>
@@ -51,8 +58,6 @@
                         <br>
                         <span class="error">{{ errors.setPassword }}</span>
                     </label>
-
-
                     <label>
                         确认密码：
                         <br>
@@ -60,11 +65,15 @@
                         <br>
                         <span class="error">{{ errors.setPasswordAgain }}</span>
                     </label>
-
-
+                    <label v-if="showVerifyCode || isLogin">
+                        验证码：
+                        <input type="text" v-model="verifyCode">
+                        <img :src="'/other/getHorse?' + timestamp"
+                             @click="refreshHorse">
+                        <span class="error">{{ errors.verifyCode }}</span>
+                    </label>
                 </form>
             </div>
-
 
             <!-- 修改密码界面 -->
             <div class="form-panel" :class="{active: showForgotPassword}">
@@ -110,7 +119,6 @@
                         <span class="error">{{ errors.loginAccount }}</span>
                     </label>
                     <br>
-
                     <label>
                         登录密码：
                         <br>
@@ -118,12 +126,19 @@
                         <br>
                         <span class="error">{{ errors.loginPassword }}</span>
                     </label>
+                    <label v-if="showVerifyCode || isLogin" class="verify-code-group">
+                        验证码：
+                        <input type="text" v-model="verifyCode">
+                        <img :src="'/other/getHorse?' + timestamp"
+                             @click="refreshHorse"
+                             class="verify-code-img">
+                        <span class="error">{{ errors.verifyCode }}</span>
+                    </label>
                     <h5 @click="forgetPassword" style="text-align: right;">忘记密码</h5>
 
                 </form>
             </div>
             <br>
-
 
             <!-- 提交按钮 -->
             <button class="button" @click="showForgotPassword ? submitChangePassword() : submitCheck()">
@@ -131,7 +146,6 @@
             </button>
 
             <br>
-
             <!-- 登录/注册框的切换 -->
             <h4 @click="turnWay">{{turn}}</h4>
 
@@ -144,11 +158,9 @@
 <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.14/vue.min.js"></script>
 
 <script>
-    var app = new Vue({
+    new Vue({
         el: '#app',
         data: {
-
-
             isLogin: false,
             way: '登录',
             turn: "还没有账号？点我注册",
@@ -157,6 +169,8 @@
             setPasswordAgain: '',
             setPhone: '',
             setEmail: '',
+            setIdNumber: '',
+            setName: "",
 
             loginAccount: '',
             loginPassword: '',
@@ -168,9 +182,30 @@
             newPassword: '',
             confirmNewPassword: '',
 
+            horse: '',
+            timestamp: Date.now(), // 添加时间戳用于刷新验证码
+            verifyCode: '', // 用户输入的验证码
+            errorCount: 0, // 错误计数器
+            showVerifyCode: false,
+
+            hadLogin: false
+
         },
 
         methods: {
+
+            // 更换验证码图片
+            changeHorse() {
+                let that = this;
+                axios.post('/other/getHorse').then(response => {
+                    that.horse = response.data;
+                })
+            },
+
+            // 刷新验证码图片
+            refreshHorse() {
+                this.timestamp = Date.now(); // 修改时间戳强制浏览器重新加载图片
+            },
 
             // 改变登录 / 注册状态
             turnWay() {
@@ -187,6 +222,7 @@
                 this.isLogin = !this.isLogin;
                 this.way = this.isLogin ? '注册' : '登录';
                 this.turn = this.isLogin ? "回到登录" : "还没有账号？点我注册";
+                this.changeHorse()
             },
 
 
@@ -194,56 +230,18 @@
             submitCheck() {
 
                 that = this;
-
                 that.errors = {}
-
                 let ifSuccess = true;
 
                 // 注册
                 if (that.isLogin) {
-
-                    if (!that.setPhone) {
-                        that.errors.setPhone = '!!!请输入手机号'
+                    // 验证验证码
+                    if (!that.verifyCode) {
+                        that.errors.verifyCode = '!!!验证码错误';
                         ifSuccess = false;
                     } else {
-                        const phoneRegex = /^1[3-9]\d{9}$/;
-                        if (!phoneRegex.test(that.setPhone)) {
-                            that.errors.setPhone = '!!!手机号码不符合中国大陆'
-                            ifSuccess = false;
-                        }
-                    }
-
-                    if (!that.setEmail) {
-                        that.errors.setEmail = '!!!请输入邮箱'
-                        ifSuccess = false;
-                    } else {
-                        const emailRegex = /^\w+@\w+$/;
-                        if (!emailRegex.test(that.setEmail)) {
-                            that.errors.setEmail = '!!!邮箱格式应为??? + @ + ???'
-                            ifSuccess = false;
-                        }
-                    }
-
-                    if (!that.setPassword) {
-                        that.errors.setPassword = '!!!请输入密码'
-                        ifSuccess = false;
-                    }
-
-                    if (!that.setPasswordAgain) {
-                        that.errors.setPasswordAgain = '!!!请再次输入密码'
-                        ifSuccess = false;
-                    }
-
-                    if (that.setPassword && that.setPasswordAgain && that.setPassword !== that.setPasswordAgain) {
-                        that.errors.setPasswordAgain = '!!!两次输入密码不一致'
-                        ifSuccess = false;
-                    }
-
-                    if (ifSuccess) {
-                        axios.post('/register', new URLSearchParams({
-                                phone: that.setPhone,
-                                email: that.setEmail,
-                                password: that.setPassword,
+                        axios.post('/other/checkHorse', new URLSearchParams({
+                                inputHorse: that.verifyCode,
                             }),
                             {
                                 headers: {
@@ -251,30 +249,150 @@
                                 }
                             }).then((response) => {
                             // 请求成功处理
-                            if (response.data.code === 200) { // 后端返回200表示成功
-                                //  显示成功提示
-                                that.$message.success('注册成功！');
+                            if (!response.data.success) {
+                                that.ifSuccess = false;
+                                that.errors.verifyCode = "!!!验证码输入错误";
+                            }
+                        })
+                    }
+
+                    // 身份证号不为空
+                    if (!that.setIdNumber) {
+                        that.errors.setIdNumber = '!!!请输入身份证号'
+                        ifSuccess = false;
+                    } else {
+                        // 身份证正则验证
+                        const idRegex = /^[1-9]\d{5}20[0-1]\d(0[1-9]|1[0-2])(0[1-9]|[12]\d|30|31)[0-9]{3}[\dXx]$/;
+                        if (!idRegex.test(that.setIdNumber)) {
+                            that.errors.setIdNumber = '!!!身份证号格式有误'
+                            ifSuccess = false;
+                        }
+                    }
+
+                    // 手机号不为空
+                    if (!that.setPhone) {
+                        that.errors.setPhone = '!!!请输入手机号'
+                        ifSuccess = false;
+                    } else {
+                        // 手机正则验证
+                        const phoneRegex = /^1[3-9]\d{9}$/;
+                        if (!phoneRegex.test(that.setPhone)) {
+                            that.errors.setPhone = '!!!手机号码不符合中国大陆'
+                            ifSuccess = false;
+                        }
+                    }
+
+                    // 邮箱不为空
+                    if (!that.setEmail) {
+                        that.errors.setEmail = '!!!请输入邮箱'
+                        ifSuccess = false;
+                    } else {
+                        // 邮箱正则验证
+                        const emailRegex = /^\w+@\w+$/;
+                        if (!emailRegex.test(that.setEmail)) {
+                            that.errors.setEmail = '!!!邮箱格式应为??? + @ + ???'
+                            ifSuccess = false;
+                        }
+                    }
+
+                    // 姓名不为空
+                    if (!that.setName) {
+                        that.errors.setPassword = '!!!请输入姓名'
+                        ifSuccess = false;
+                    }
+
+                    // 密码不为空
+                    if (!that.setPassword) {
+                        that.errors.setPassword = '!!!请输入密码'
+                        ifSuccess = false;
+                    }
+
+                    // 需要再次输入密码
+                    if (!that.setPasswordAgain) {
+                        that.errors.setPasswordAgain = '!!!请再次输入密码'
+                        ifSuccess = false;
+                    }
+
+                    // 两次输入密码需要一致
+                    if (that.setPassword && that.setPasswordAgain && that.setPassword !== that.setPasswordAgain) {
+                        that.errors.setPasswordAgain = '!!!两次输入密码不一致'
+                        ifSuccess = false;
+                    }
+
+                    // 前边非空验证都通过
+                    if (ifSuccess) {
+                        axios.post('/other/register', new URLSearchParams({
+                                phone: that.setPhone,
+                                email: that.setEmail,
+                                password: that.setPassword,
+                                idNumber: that.setIdNumber,
+                                name: that.setName,
+                            }),
+                            {
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded'
+                                }
+                            }).then((response) => {
+                            // 请求成功处理
+                            if (response.data.success) {
+                                alert('注册成功！');
+                                that.turnWay(); // 注册成功后跳转到登录
                             }
                         })
                             .catch((error) => {
                                 if (error.response && error.response.data.error) {
-                                    alert(error.response.data.error); // 显示后端返回的具体错误
+                                    alert(error.response.data.error);
                                 }
                             });
                     }
-                } else {
 
-                    // 登录
+                    // 注册失败时刷新验证码
+                    if (!ifSuccess) {
+                        that.refreshHorse();
+                    }
+
+                } else {
+                    // 登录 - 三次错误后需要验证码
+                    if (that.errorCount >= 3) {
+                        that.showVerifyCode = true;
+                        // 验证验证码
+                        if (!that.verifyCode) {
+                            that.errors.verifyCode = '!!!验证码错误';
+                            ifSuccess = false;
+                        } else {
+                            axios.post('/other/checkHorse', new URLSearchParams({
+                                    inputHorse: that.verifyCode,
+                                }),
+                                {
+                                    headers: {
+                                        'Content-Type': 'application/x-www-form-urlencoded'
+                                    }
+                                }).then((response) => {
+                                // 请求成功处理
+                                if (!response.data.success) {
+                                    that.ifSuccess = false;
+                                    that.errors.verifyCode = "!!!验证码输入错误";
+                                }
+                            })
+                        }
+                    }
+
+                    // 账号非空
                     if (!that.loginAccount) {
                         that.errors.loginAccount = '!!!请输入手机号/邮箱'
                         ifSuccess = false;
                     }
+
+                    // 密码非空
                     if (!that.loginPassword) {
                         that.errors.loginPassword = '!!!请输入密码'
                         ifSuccess = false;
                     }
+
+                    // 前边非空验证通过
                     if (ifSuccess) {
                         if (!that.loginAccount.includes("@")) {
+                            // 如果不含@，验证手机正则
                             const phoneRegex = /^1[3-9]\d{9}$/;
                             if (!that.loginAccount.match(phoneRegex)) {
                                 that.errors.loginAccount = '!!!您输入的既不是手机号也不是邮箱'
@@ -282,8 +400,11 @@
                             }
                         }
                     }
+
+                    // 前边验证都通过
                     if (ifSuccess) {
-                        axios.post('/login', new URLSearchParams({
+                        // 发送登录请求
+                        axios.post('/other/login', new URLSearchParams({
                                 username: that.loginAccount,
                                 password: that.loginPassword,
                             }),
@@ -294,6 +415,9 @@
                             }).then((response) => {
                             // 请求成功处理
                             if (response.data.code === 200) { // 后端返回200表示成功
+                                // 登录成功重置错误计数
+                                that.errorCount = 0;
+                                that.showVerifyCode = false;
                                 // 管理员登录
                                 if (response.data.message === "admin") {
                                     window.location.href = 'adminLogin.html';
@@ -302,14 +426,30 @@
                                 }
 
                             } else {
-                                alert(response.data.message);
+                                // 密码错误增加错误计数
+                                that.errorCount++;
+                                if (that.errorCount >= 3) {
+                                    that.showVerifyCode = true;
+                                    that.refreshHorse();
+                                }
+                                alert(response.data.error);
                             }
                         })
                             .catch((error) => {
                                 if (error.response && error.response.data.error) {
-                                    alert(error.response.data.error); // 显示后端返回的具体错误
+                                    // 其他错误也增加错误计数
+                                    that.errorCount++;
+                                    if (that.errorCount >= 3) {
+                                        that.showVerifyCode = true;
+                                        that.refreshHorse();
+                                    }
+                                    alert(error.response.data.error);
                                 }
                             });
+                    }
+                    // 登录失败时刷新验证码
+                    if (!ifSuccess && that.errorCount >= 3) {
+                        that.refreshHorse();
                     }
                 }
             },
@@ -357,7 +497,7 @@
                 }
 
                 if (ifSuccess) {
-                    axios.post('/change-password', new URLSearchParams({
+                    axios.post('/other/forget', new URLSearchParams({
                         account: this.forgotAccount,
                         newPassword: this.newPassword
                     }), {
