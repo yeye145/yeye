@@ -13,6 +13,7 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 import java.sql.SQLException;
@@ -24,29 +25,33 @@ import java.util.Set;
 public class AdminServlet extends MyBaseServlet {
 
     // 查询用的集合Set
-    private Set<Students> students;
-    private Set<Users> users;
+    private Set<Students> student;
+    private Set<Users> user;
+    private Set<Courses> course;
+    private Set<StudentCourses> studentCourse;
 
-    // 打印用的集合Set
-    private List<StudentCourses> studentCourses;
-    private List<Courses> courses;
+
+    // 打印用的集合List
+    private List<StudentCourses> printStudentCourses;
+    private List<Courses> printCourses;
     private List<Students> printStudents;
 
 
+    // 加载sql信息
     {
 
         try {
             // 获得学生sql信息
-            this.students = MySearch.searchToSet("SELECT * FROM student.students", Students.class);
+            this.student = MySearch.searchToSet("SELECT * FROM student.students", Students.class);
 
             // 获得可选课程sql信息
-            this.studentCourses = MySearch.searchToList("SELECT * FROM student.student_courses;", StudentCourses.class);
+            this.printStudentCourses = MySearch.searchToList("SELECT * FROM student.student_courses;", StudentCourses.class);
 
             // 获得可选课程sql信息
-            this.courses = MySearch.searchToList("SELECT * FROM student.courses;", Courses.class);
+            this.printCourses = MySearch.searchToList("SELECT * FROM student.courses;", Courses.class);
 
             // 获得用户sql信息
-            this.users = MySearch.searchToSet("SELECT * FROM student.users;", Users.class);
+            this.user = MySearch.searchToSet("SELECT * FROM student.users;", Users.class);
 
             // 获得学生sql信息
             this.printStudents = MySearch.searchToList("SELECT * FROM student.students", Students.class);
@@ -58,22 +63,27 @@ public class AdminServlet extends MyBaseServlet {
     }
 
 
-    // 全部课程
-    public void cLook(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        if (OtherServlet.studentAccount.isEmpty()) {
-            response.getWriter().write("{\"code\":401, \"error\":\"用户不存在！\"}");
-            System.out.println("未登录");
+    // 查询全部课程
+    public void cLook(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SQLException {
+        HttpSession session = request.getSession();
+        Users u = (Users) session.getAttribute("user");
+        if ( u == null || u.getIsAdmin() !=2) {
+            System.out.println("未登录或权限不足");
+            response.getWriter().write("{\"code\":401, \"message\":\"" +
+                    (u == null ? "未登录" : "权限不足") + "\"}");
             return;
         }
-        String jsonString = JSON.toJSONString(this.courses);
+
+        // 刷新课程信息
+        refreshCourses();
+        String jsonString = JSON.toJSONString(this.printCourses);
         System.out.println("全部课程" + jsonString);
         response.getWriter().write(jsonString);
     }
 
 
-    // 全部学生
+    // 查询全部学生
     public void sLook(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SQLException {
-
         refreshStudents();
         String jsonString = JSON.toJSONString(this.printStudents);
         System.out.println("全部学生" + jsonString);
@@ -81,9 +91,10 @@ public class AdminServlet extends MyBaseServlet {
     }
 
 
+    // 查询 选 某门课程的 学生
     public void whoSelect(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SQLException {
 
-        initStudents();
+        initStudent();
         refreshStudents();
 
         // 获取参数
@@ -92,7 +103,7 @@ public class AdminServlet extends MyBaseServlet {
 
         System.out.println(cName);
 
-        for (Courses c : this.courses) {
+        for (Courses c : this.printCourses) {
             if (c.getCourseName().equals(cName)) {
 
                 for (Students s : this.printStudents) {
@@ -111,41 +122,62 @@ public class AdminServlet extends MyBaseServlet {
     }
 
 
-    // 修改手机号码
+    // 修改某个学生的手机号码
     public void updatePhone(HttpServletRequest request, HttpServletResponse response) throws Exception {
         String newPhone = request.getParameter("newPhone");
         String email = request.getParameter("email");
 
-        initUsers();
-        initStudents();
+        MyUpdate.update("UPDATE `student`.`users` SET `phoneNumber` = ? " +
+                "WHERE (`email` = ?);", newPhone, email);
+        MyUpdate.update("UPDATE `student`.`students` SET `phoneNumber` = ? " +
+                "WHERE (`email` = ?);", newPhone, email);
+        refreshStudents();
+        System.out.println("电话号码修改成功！" + newPhone);
+        response.getWriter().write("{\"code\":200, \"message\":\"修改成功\"}");
 
-        for (Students s : this.students) {
-            if (s.getEmail().equals(email)) {
-                MyUpdate.update("UPDATE `student`.`users` SET `phoneNumber` = ? " +
-                        "WHERE (`email` = ?);", newPhone, email);
-                MyUpdate.update("UPDATE `student`.`students` SET `phoneNumber` = ? " +
-                        "WHERE (`email` = ?);", newPhone, email);
-                refreshStudents();
-                System.out.println("电话号码修改成功！" + newPhone);
-                response.getWriter().write("{\"code\":200, \"message\":\"修改成功\"}");
-                return;
-            }
-        }
-        response.getWriter().write("{\"code\":401, \"message\":\"修改失败\"}");
     }
 
 
+    // 修改某个课程的学分
+    public void updateScore(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        String courseName = request.getParameter("courseName");
+        Integer newScore = Integer.parseInt(request.getParameter("newScore"));
 
-    private void initUsers() throws SQLException {
-        this.users = MySearch.searchToSet("SELECT * FROM student.users", Users.class);
+        MyUpdate.update("UPDATE `student`.`courses` SET `score` = ? " +
+                "WHERE (`courseName` = ?);", newScore, courseName);
+        MyUpdate.update("UPDATE `student`.`student_courses` SET `score` = ? " +
+                "WHERE (`courseName` = ?);", newScore, courseName);
+        System.out.println("学分修改成功！" + courseName);
+        response.getWriter().write("{\"code\":200, \"message\":\"修改成功\"}");
+
+    }
+
+    // 获取新的sql.users信息，用于操作
+    private void initUser() throws SQLException {
+        this.user = MySearch.searchToSet("SELECT * FROM student.users", Users.class);
     }
 
 
-    private void initStudents() throws SQLException {
-        this.students = MySearch.searchToSet("SELECT * FROM student.students", Students.class);
+    // 获取新的sql.students信息，用于操作
+    private void initStudent() throws SQLException {
+        this.student = MySearch.searchToSet("SELECT * FROM student.students", Students.class);
     }
 
+    // 获取新的sql.courses和student_courses信息，用于操作
+    private void initCourse() throws SQLException {
+        this.course = MySearch.searchToSet("SELECT * FROM student.courses", Courses.class);
+        this.studentCourse = MySearch.searchToSet("SELECT * FROM student.student_courses", StudentCourses.class);
+    }
+
+    // 获取新的学生信息，用于查询
     private void refreshStudents() throws SQLException {
         this.printStudents = MySearch.searchToList("SELECT * FROM student.students", Students.class);
     }
+
+    // 获取新的学生信息，用于查询
+    private void refreshCourses() throws SQLException {
+        this.printCourses = MySearch.searchToList("SELECT * FROM student.courses", Courses.class);
+        this.printStudentCourses = MySearch.searchToList("SELECT * FROM student.student_courses", StudentCourses.class);
+    }
+
 }

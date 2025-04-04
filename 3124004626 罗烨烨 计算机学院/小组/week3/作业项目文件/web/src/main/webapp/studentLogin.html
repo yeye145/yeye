@@ -18,7 +18,7 @@
         <h2 style="text-align: center;" title="学生登录">——学生信息管理——</h2>
         <hr>
         <br>
-        <li class="left-column-work">修改号码</li>
+        <li class="left-column-work" @click="editPhone">修改号码</li>
         <br>
         <li class="left-column-work" @click="coursesSelect">可选课程</li>
         <br>
@@ -28,8 +28,16 @@
         <h3>📚个人信息</h3>
         <div>👤姓名：{{studentInfo.name}}</div>
         <br>
-        <div v-if="studentInfo.phoneNumber">
-            📞号码：{{studentInfo.phoneNumber}}
+        <div>
+            📞号码：
+            <span v-if="!ifEdit">{{ studentInfo.phoneNumber }}</span>
+            <input
+                    v-else
+                    type="number"
+                    v-model="newPhone"
+                    @keyup.enter="savePhone"
+                    @blur="savePhone"
+            >
         </div>
         <br>
         <div>📮邮箱：{{studentInfo.email}}</div>
@@ -75,13 +83,12 @@
             data: {
                 studentInfo: {},// 存储学生个人信息
                 coursesCanSelect: [],
-                isSelect: false
+                isSelect: false,
+                ifEdit: false,
+                newPhone: '',
             },
             mounted() {
-                if (typeof axios === 'undefined') {
-                    console.error('Axios is not loaded!');
-                    return;
-                }
+
                 // 页面加载完成后，发送异步请求，查询数据
                 let that = this;
                 axios.post('/student/mLook')
@@ -90,10 +97,8 @@
                             that.studentInfo = response.data.data; // 个人信息
                         }
                         else if (response.data.code === 401) {
-                            alert("您还未登录！");
+                            alert(response.data.message);
                             window.location.href = '/vueLogin.html';
-                        } else {
-                            console.error('获取数据失败:', response.data.message);
                         }
                     })
                     .catch(error => {
@@ -109,6 +114,34 @@
                     axios.get('/student/scLook').then(response => {
                         that.coursesCanSelect = response.data;
                     })
+                },
+                editPhone() {
+                    this.newPhone = this.studentInfo.phoneNumber; // 将原手机号赋值给newPhone
+                    this.ifEdit = true;
+                    // 自动聚焦输入框
+                    this.$nextTick(() => {
+                        this.$el.querySelector('input').focus();
+                    });
+                },
+                savePhone() {
+                    let that = this;
+                    const phoneRegex = /^1[3-9]\d{9}$/;
+                    if (phoneRegex.test(that.newPhone)) {
+                        that.studentInfo.phoneNumber = that.newPhone;
+                        axios.post('/admin/updatePhone', new URLSearchParams({
+                            email: that.studentInfo.email,
+                            newPhone: that.newPhone
+                        }), {
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            }
+                        }).then(response => {
+                            if (response.data.code !== 200) {
+                                alert("更新手机号失败");
+                            }
+                        });
+                    }
+                    that.ifEdit = false;
                 }
             }
         },

@@ -33,14 +33,14 @@
                     <label>
                         邮箱：
                         <br>
-                        <input type="text" v-model="setEmail">
+                        <input type="text" v-model="setEmail" maxlength="20">
                         <br>
                         <span class="error">{{ errors.setEmail }}</span>
                     </label>
                     <label>
                         姓名：
                         <br>
-                        <input type="text" v-model="setName">
+                        <input type="text" v-model="setName" maxlength="11">
                         <br>
                         <span class="error">{{ errors.setName }}</span>
                     </label>
@@ -54,14 +54,14 @@
                     <label>
                         密码：
                         <br>
-                        <input type="password" v-model="setPassword">
+                        <input type="password" v-model="setPassword" maxlength="15">
                         <br>
                         <span class="error">{{ errors.setPassword }}</span>
                     </label>
                     <label>
                         确认密码：
                         <br>
-                        <input type="password" v-model="setPasswordAgain">
+                        <input type="password" v-model="setPasswordAgain" maxlength="15">
                         <br>
                         <span class="error">{{ errors.setPasswordAgain }}</span>
                     </label>
@@ -81,7 +81,7 @@
                     <label>
                         手机号/邮箱：
                         <br>
-                        <input type="text" v-model="forgotAccount">
+                        <input type="text" v-model="forgotAccount" maxlength="20">
                         <br>
                         <span class="error">{{ errors.forgotAccount }}</span>
                     </label>
@@ -90,7 +90,7 @@
                     <label>
                         新密码：
                         <br>
-                        <input type="password" v-model="newPassword">
+                        <input type="password" v-model="newPassword" maxlength="15">
                         <br>
                         <span class="error">{{ errors.newPassword }}</span>
                     </label>
@@ -99,7 +99,7 @@
                     <label>
                         确认新密码：
                         <br>
-                        <input type="password" v-model="confirmNewPassword">
+                        <input type="password" v-model="confirmNewPassword" maxlength="15">
                         <br>
                         <span class="error">{{ errors.confirmNewPassword }}</span>
                     </label>

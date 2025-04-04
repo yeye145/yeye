@@ -28,7 +28,7 @@ public class MyBaseServlet extends HttpServlet {
             // 获取方法对象
             Method method = clazz.getMethod(methodName, HttpServletRequest.class, HttpServletResponse.class);
 
-            // 暴力执行
+            // 执行方法
             method.invoke(this, request, response);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);

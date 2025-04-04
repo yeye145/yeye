@@ -12,6 +12,7 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -61,16 +62,17 @@ public class StudentServlet extends MyBaseServlet {
 
     // 获得个人信息
     public void mLook(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        Users u = (Users) session.getAttribute("user");
 
-        if (OtherServlet.studentAccount.isEmpty()) {
-            response.getWriter().write("{\"code\":401, \"error\":\"用户不存在！\"}");
-            System.out.println("未登录");
+        if (u == null || u.getIsAdmin() == 2) {
+            System.out.println("未登录或是管理员");
+            response.getWriter().write("{\"code\":401, \"message\":\"" +
+                    (u == null ? "未登录" : "您是管理员") + "\"}");
             return;
         }
 
-        System.out.println("电话" + OtherServlet.studentAccount);
-
-        String phone = OtherServlet.studentAccount;
+        String phone = u.getPhoneNumber();
 
 
         // 查找目标学生信息

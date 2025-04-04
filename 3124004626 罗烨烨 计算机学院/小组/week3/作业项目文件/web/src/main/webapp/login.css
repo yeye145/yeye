@@ -6,6 +6,7 @@ body {
     margin-top: 20px;
 }
 
+
 .left-column {
     max-width: 1200px;
     background: white;
@@ -13,10 +14,10 @@ body {
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     position: fixed;
-    left: 0;             /* 紧贴左侧 */
-    top: 0;              /* 从顶部开始 */
-    height: 900%;        /* 和顶栏等高 */
-    width: 250px;          /* 白条宽度 */
+    left: 0; /* 紧贴左侧 */
+    top: 0; /* 从顶部开始 */
+    height: 900%; /* 和顶栏等高 */
+    width: 250px; /* 白条宽度 */
     margin-top: 49px;
 }
 
@@ -28,10 +29,10 @@ body {
     width: 100%;
     height: 50px;
     background-color: #000;
-    display: flex;          /* 使用弹性布局 */
+    display: flex; /* 使用弹性布局 */
     justify-content: flex-end; /* 内容右对齐 */
-    align-items: center;     /* 垂直居中 */
-    padding: 0 20px;        /* 左右内边距 */
+    align-items: center; /* 垂直居中 */
+    padding: 0 20px; /* 左右内边距 */
     z-index: 1000;
 }
 
@@ -54,6 +55,7 @@ body {
     text-decoration: underline;
 }
 
+
 .right-column {
     position: fixed;
     left: 290px;
@@ -72,7 +74,6 @@ body {
     font-size: 14px;
 
 }
-
 
 #app .right-column td {
     padding: 12px 15px;
@@ -97,17 +98,46 @@ body {
     background-color: #f8f9fa;
 }
 
-/* 单独设置第一个和最后一个单元格的圆角 */
+/* 单独设置信息查询表格第一个和最后一个单元格的圆角 */
 #app .right-column tr:first-child th:first-child {
     border-top-left-radius: 10px;
 }
+
 #app .right-column tr:first-child th:last-child {
     border-top-right-radius: 10px;
 }
+
 #app .right-column tr:last-child td:first-child {
     border-bottom-left-radius: 10px;
 }
+
 #app .right-column tr:last-child td:last-child {
     border-bottom-right-radius: 10px;
+}
+
+
+#app .search-bar {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+#app .search-bar input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    flex-grow: 1;
+}
+
+#app .search-bar button {
+    padding: 8px 16px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#app .search-bar button:hover {
+    background-color: #e0e0e0;
 }
 

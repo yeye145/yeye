@@ -2,7 +2,7 @@ package web;
 
 import javabean.people.Students;
 import javabean.people.Users;
-import myHandWriteTool.MyPool;
+
 import myHandWriteTool.MySearch;
 import myHandWriteTool.MyUpdate;
 
@@ -11,10 +11,10 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Random;
 import java.util.Set;
@@ -26,7 +26,6 @@ public class OtherServlet extends MyBaseServlet {
     private Set<Students> students;
 
 
-    public static String studentAccount = "";
     private String horse = "";
 
     {
@@ -49,7 +48,8 @@ public class OtherServlet extends MyBaseServlet {
         String password = request.getParameter("password");
 
         // 设置学生账号为空
-        studentAccount = "";
+        HttpSession session = request.getSession();
+        session.setAttribute("user", null);
 
         try {
 
@@ -58,7 +58,7 @@ public class OtherServlet extends MyBaseServlet {
 
                 if (user.getPhoneNumber().equals(username) || user.getEmail().equals(username)) {
                     // 检验密码是不是正确的
-                    checkPassword(response, user, password);
+                    checkPassword(response, request, user, password);
                     return;
                 }
             }
@@ -87,18 +87,17 @@ public class OtherServlet extends MyBaseServlet {
     }
 
 
-    private void checkPassword(HttpServletResponse response, Users user, String password) throws IOException {
+    private void checkPassword(HttpServletResponse response, HttpServletRequest request, Users user, String password) throws IOException {
         if (user.getPassword().equals(password)) {
-            this.studentAccount = user.getPhoneNumber();
+            // 设置用户信息到 session
+            HttpSession session = request.getSession();
+            session.setAttribute("user", user); // 存储整个用户对象
 
-            if (user.getIsAdmin() == 2) {
-                System.out.println("管理员" + user.getIsAdmin());
-                response.getWriter().write("{\"code\":200, \"message\":\"admin\"}");
-            } else {
-                System.out.println("学生" + user.getIsAdmin());
-                response.getWriter().write("{\"code\":200, \"message\":\"student\"}");
-            }
-            System.out.println("登录成功！" + this.studentAccount);
+            // 返回响应
+            response.getWriter().write("{\"code\":200, \"message\":\"" +
+                    (user.getIsAdmin() == 2 ? "admin" : "student") + "\"}");
+
+            System.out.println("登录成功！" + user.getPhoneNumber());
         } else {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("{\"code\":401, \"error\":\"密码错误\"}");
@@ -260,7 +259,9 @@ public class OtherServlet extends MyBaseServlet {
 
     // 获取随机4位文字验证码
     private String generateRandomCode(int length) {
-        String chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+        // 因为大写的i，小写的L，数字1；数字2和字母Z 容易混淆，所以此处我没加
+        String chars = "ABCDEFGHJKMNPQRSTUVWXY3456789";
         StringBuilder sb = new StringBuilder();
         Random random = new Random();
         for (int i = 0; i < length; i++) {

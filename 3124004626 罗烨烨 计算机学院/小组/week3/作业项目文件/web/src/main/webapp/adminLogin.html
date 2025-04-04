@@ -29,6 +29,18 @@
     </div>
 
     <div class="right-column">
+        <!--课程搜索框-->
+        <div class="search-bar" v-if="ifAllCourses">
+            <input type="text" v-model="courseSearchQuery"
+                   placeholder="输入课程名称或信息搜索"
+                   @input="searchCourses">
+        </div>
+        <!--搜索学生的框-->
+        <div class="search-bar" v-if="ifAllStudents && !ifWhoSelectIt">
+            <input type="text" v-model="studentSearchQuery"
+                   placeholder="输入学生姓名、手机号或邮箱搜索"
+                   @input="searchStudents">
+        </div>
         <table v-if="ifAllCourses">
             <tr>
                 <th>课程序号</th>
@@ -43,7 +55,17 @@
                 <td class="left-column-work" @click="turnWhoSelectIt(ac.courseName)">{{ac.key}}</td>
                 <td class="left-column-work" @click="turnWhoSelectIt(ac.courseName)">{{ac.courseName}}</td>
                 <td class="left-column-work" @click="turnWhoSelectIt(ac.courseName)">{{ac.information}}</td>
-                <td class="left-column-work" @click="turnWhoSelectIt(ac.courseName)">{{ac.score}}</td>
+                <td @dblclick="editScore(ac)">
+                    <!--编辑学分-->
+                    <span v-if="!ac._editingScore">{{ac.score}}</span>
+                    <input v-else
+                           v-model="ac._newScore"
+                           @blur="saveScore(ac)"
+                           @keyup.enter="saveScore(ac)"
+                           type="number"
+                           min="0"
+                           step="1">
+                </td>
                 <td class="left-column-work" @click="turnWhoSelectIt(ac.courseName)">{{ac.ifCanChoose}}</td>
                 <td class="left-column-work" @click="turnWhoSelectIt(ac.courseName)">{{ac.numberCanChoose}}</td>
                 <td class="left-column-work" @click="turnWhoSelectIt(ac.courseName)">{{ac.numberChoose}}</td>
@@ -64,18 +86,20 @@
                 <td>{{s.id}}</td>
                 <td>{{s.name}}</td>
                 <td @dblclick="editPhone(s)">
-                    <span v-if="!s._editing">{{s.phoneNumber}}</span>
+                    <!--编辑手机号-->
+                    <span v-if="!s._editingPhone">{{s.phoneNumber}}</span>
                     <input v-else
                            v-model="s._newPhone"
                            @blur="savePhone(s)"
                            @keyup.enter="savePhone(s)"
-                           type="text">
+                           type="number">
                 </td>
                 <td>{{s.email}}</td>
                 <td>{{s.classHadSelected}}</td>
                 <td>{{s.classNumber}}</td>
                 <td>{{s.gender}}</td>
             </tr>
+            <!--查询某门课程有哪些学生选-->
             <tr v-for="s in whoSelectIt" v-if="ifWhoSelectIt">
                 <td>{{s.id}}</td>
                 <td>{{s.name}}</td>
@@ -102,6 +126,12 @@
             allCourses: [],
             allStudents: [],
             whoSelectIt: [],
+
+            courseSearchQuery: '', // 课程关键字搜索
+            originalCourses: [], // 用于存储原始课程数据
+            studentSearchQuery:'', // 学生关键字搜索
+            originalStudents: [], // 保存原始学生数据
+
         },
         mounted() {
             this.refresh();
@@ -111,33 +141,46 @@
                 let that = this;
                 axios.post('/admin/cLook').then(response => {
                     if (response.data.code === 401) {
-                        alert("您还未登录！");
+                        alert(response.data.message);
                         window.location.href = '/vueLogin.html';
                     }
-                    that.allCourses = response.data;
-                    that.allCourses.ifCanChoose === 1
-                        ? that.allCourses.ifCanChoose = "是"
-                        : that.allCourses.ifCanChoose = "否"
-                })
+                    // 保存原始课程数据
+                    that.originalCourses = response.data;
+                    that.allCourses = response.data.map(course => ({
+                        ...course,
+                        _editingScore: false,
+                        _newScore: course.score,
+                        ifCanChoose: course.ifCanChoose === 1 ? "是" : "否"
+                    }));
+
+                });
                 axios.post('/admin/sLook').then(response => {
+                    // 保存原始学生数据
+                    that.originalStudents = response.data;
                     that.allStudents = response.data.map(student => ({
                         // 使用扩展运算符(...)复制原有的学生对象属性，并添加两个临时新属性用于修改手机号码
                         ...student,
-                        _editing: false,
+                        _editingPhone: false,
                         _newPhone: student.phoneNumber
                     }));
                 })
             },
+            // 查看所有课程
             turnAllCourse() {
+                this.refresh();
                 this.ifAllCourses = true;
                 this.ifAllStudents = false;
             },
+            // 查看所有学生
             turnAllStudent() {
+                this.refresh();
                 this.ifAllCourses = false;
                 this.ifAllStudents = true;
                 this.ifWhoSelectIt = false;
             },
+            // 查看某门课程有谁选了
             turnWhoSelectIt(cName) {
+                this.refresh();
                 this.ifAllCourses = false;
                 this.ifAllStudents = true;
                 this.ifWhoSelectIt = true;
@@ -152,8 +195,9 @@
                     that.whoSelectIt = response.data;
                 })
             },
+            // 编辑手机号
             editPhone(student) {
-                student._editing = true;
+                student._editingPhone = true;
                 student._newPhone = student.phoneNumber;
                 // 自动聚焦输入框
                 this.$nextTick(() => {
@@ -161,6 +205,7 @@
                     if (input) input.focus();
                 });
             },
+            // 保存手机号
             savePhone(student) {
                 const phoneRegex = /^1[3-9]\d{9}$/;
                 if (phoneRegex.test(student._newPhone)) {
@@ -176,13 +221,103 @@
                         if (response.data.code !== 200) {
                             alert("更新手机号失败");
                         }
+                    }).catch(error => {
+                        alert("请求错误: " + error.message);
                     });
                 }
-                student._editing = false;
+                student._editingPhone = false;
+            },
+            // 学分编辑
+            editScore(course) {
+                course._editingScore = true;
+                course._newScore = course.score;
+                this.$nextTick(() => {
+                    const input = this.$el.querySelector('input[v-model="ac._newScore"]');
+                    if (input) input.focus();
+                });
+            },
+            // 保存学分
+            saveScore(course) {
+                const newScore = parseInt(course._newScore);
+                if (newScore > 0) {
+                    axios.post('/admin/updateScore', new URLSearchParams({
+                        courseName: course.courseName,
+                        newScore: newScore
+                    }), {
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    }).then(response => {
+                        if (response.data.code === 200) {
+                            course.score = newScore;
+                        } else {
+                            alert("更新学分失败");
+                        }
+                    }).catch(error => {
+                        alert("请求错误: " + error.message);
+                    });
+                }
+                course._editingScore = false;
+            },
+            // 课程搜索
+            searchCourses() {
+                if (this.courseSearchQuery.trim() === '') {
+                    // 清空搜索时恢复原始数据
+                    this.allCourses = this.originalCourses.map(course => ({
+                        ...course,
+                        _editingScore: false,
+                        _newScore: course.score,
+                        ifCanChoose: course.ifCanChoose === 1 ? "是" : "否"
+                    }));
+                    return;
+                }
+
+                // 将查询的字符串转化为小写
+                const query = this.courseSearchQuery.toLowerCase();
+
+                this.allCourses = this.originalCourses
+                    .filter(course =>
+                        // 将课程名称转化为小写，如果包含这个课程名称，则储存
+                        course.courseName.toLowerCase().includes(query) ||
+                        course.information.toLowerCase().includes(query)
+                    )
+                    .map(course => ({
+                        ...course,
+                        _editingScore: false,
+                        _newScore: course.score,
+                        ifCanChoose: course.ifCanChoose === 1 ? "是" : "否"
+                    }));
+            },
+            // 学生搜索
+            searchStudents() {
+                if (this.studentSearchQuery.trim() === '') {
+                    // 清空搜索时恢复原始数据
+                    this.allStudents = this.originalStudents.map(student => ({
+                        ...student,
+                        _editingPhone: false,
+                        _newPhone: student.phoneNumber
+                    }));
+                    return;
+                }
+
+                // 将查询的字符串转化为小写
+                const query = this.studentSearchQuery.toLowerCase();
+                this.allStudents = this.originalStudents
+                    .filter(student =>
+                        student.name.toLowerCase().includes(query) ||     // 按姓名搜索
+                        student.phoneNumber.includes(query) ||            // 按手机号搜索
+                        student.email.toLowerCase().includes(query)       // 按邮箱搜索
+                    )
+                    .map(student => ({
+                        ...student,
+                        _editingPhone: false,
+                        _newPhone: student.phoneNumber
+                    }));
             }
+
+
         }
     })
-
 </script>
 </body>
 </html>
