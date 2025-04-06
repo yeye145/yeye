@@ -16,6 +16,7 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -23,25 +24,26 @@ import java.util.Set;
 public class StudentServlet extends MyBaseServlet {
 
 
-    private Set<Students> students;
-    private Set<Users> users;
+    private Set<Students> student;
 
-    private List<StudentCourses> studentCourses;
-    private List<Courses> courses;
+
+    private List<StudentCourses> printStudentCourses;
+    private Set<Courses> course;
+
+    private Students targetStudent = null;
+    private String phone;
 
     {
         try {
             // 获得学生sql信息
-            this.students = MySearch.searchToSet("SELECT * FROM student.students", Students.class);
+            this.student = MySearch.searchToSet("SELECT * FROM student.students", Students.class);
 
             // 获得可选课程sql信息
-            this.studentCourses = MySearch.searchToList("SELECT * FROM student.student_courses;", StudentCourses.class);
+            this.printStudentCourses = MySearch.searchToList("SELECT * FROM student.student_courses;", StudentCourses.class);
 
-            // 获得可选课程sql信息
-            this.courses = MySearch.searchToList("SELECT * FROM student.courses;", Courses.class);
+            // 获得全部课程sql信息
+            this.course = MySearch.searchToSet("SELECT * FROM student.courses;", Courses.class);
 
-            // 获得可选课程sql信息
-            this.users = MySearch.searchToSet("SELECT * FROM student.users;", Users.class);
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -50,18 +52,14 @@ public class StudentServlet extends MyBaseServlet {
 
     // 查看可选课程
     public void scLook(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String jsonString = JSON.toJSONString(this.studentCourses);
-        System.out.println("可选课程" + jsonString);
-        response.getWriter().write(jsonString);
-    }
-    public void cLook(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String jsonString = JSON.toJSONString(this.courses);
-        System.out.println("全部课程" + jsonString);
+        String jsonString = JSON.toJSONString(this.printStudentCourses);
         response.getWriter().write(jsonString);
     }
 
+
     // 获得个人信息
     public void mLook(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
         HttpSession session = request.getSession();
         Users u = (Users) session.getAttribute("user");
 
@@ -72,17 +70,9 @@ public class StudentServlet extends MyBaseServlet {
             return;
         }
 
-        String phone = u.getPhoneNumber();
+        phone = u.getPhoneNumber();
 
-
-        // 查找目标学生信息
-        Students targetStudent = null;
-        for (Students s : this.students) {
-            if (phone.equals(s.getPhoneNumber())) {
-                targetStudent = s;
-                break;
-            }
-        }
+        refreshStudent();
 
         if (targetStudent == null) {
             response.getWriter().write("{\"code\":401, \"error\":\"用户不存在！\"}");
@@ -91,8 +81,44 @@ public class StudentServlet extends MyBaseServlet {
 
         String json = JSON.toJSONString(targetStudent);
 
-        System.out.println("\n个人信息" + json);
         response.getWriter().write("{\"code\":200,\"data\":" + json + "}");
     }
+
+    private void refreshStudent() {
+        // 查找目标学生信息
+        for (Students s : this.student) {
+            if (phone.equals(s.getPhoneNumber())) {
+                targetStudent = s;
+                break;
+            }
+        }
+    }
+
+
+    // 获取个人选课信息
+    public void lookMyCourse(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        if (targetStudent.getClassNumber() == 0) return;
+
+        refreshStudent();
+
+        //将其 选课情况 根据 + 号 切割，放进数组
+        String[] courseArray = targetStudent.getClassHadSelected().split("\\+");
+
+        List<Courses> myCourse = new ArrayList<Courses>();
+
+        //遍历数组，找到对应的课程
+        for (int i = 0; i < courseArray.length; i++) {
+            for (Courses c : course) {
+                if (courseArray[i].equals(c.getCourseName())) {
+                    myCourse.add(c);
+                }
+            }
+        }
+
+        String jsonString = JSON.toJSONString(myCourse);
+        response.getWriter().write(jsonString);
+    }
+
 
 }

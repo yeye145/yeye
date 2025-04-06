@@ -47,7 +47,7 @@ public class OtherServlet extends MyBaseServlet {
         String username = request.getParameter("username");
         String password = request.getParameter("password");
 
-        // 设置学生账号为空
+        // 设置账号为空
         HttpSession session = request.getSession();
         session.setAttribute("user", null);
 
@@ -299,6 +299,10 @@ public class OtherServlet extends MyBaseServlet {
     }
 
 
+    public void exitLogin(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        session.setAttribute("user", null);
+    }
 }
 
 

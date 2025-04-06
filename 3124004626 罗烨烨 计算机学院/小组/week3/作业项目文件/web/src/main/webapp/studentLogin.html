@@ -18,19 +18,21 @@
         <h2 style="text-align: center;" title="学生登录">——学生信息管理——</h2>
         <hr>
         <br>
-        <li class="left-column-work" @click="editPhone">修改号码</li>
+        <div class="left-column-work" @dblclick="exitLogin">🚶‍♂️ 双击退出</div>
         <br>
-        <li class="left-column-work" @click="coursesSelect">可选课程</li>
+        <div class="left-column-work" @click="turnEditPhone">🖊️ 修改号码</div>
         <br>
-        <li class="left-column-work">我的课程</li>
+        <div class="left-column-work" @click="turnSelectCourse">🔎 可选课程</div>
+        <br>
+        <div class="left-column-work" @click="turnLookMyCourse">📖 我的课程</div>
         <br>
         <hr>
         <h3>📚个人信息</h3>
-        <div>👤姓名：{{studentInfo.name}}</div>
+        <div>👤姓名：{{myInformation.name}}</div>
         <br>
         <div>
             📞号码：
-            <span v-if="!ifEdit">{{ studentInfo.phoneNumber }}</span>
+            <span v-if="!ifEditPhoneNumber">{{ myInformation.phoneNumber }}</span>
             <input
                     v-else
                     type="number"
@@ -40,11 +42,11 @@
             >
         </div>
         <br>
-        <div>📮邮箱：{{studentInfo.email}}</div>
+        <div>📮邮箱：{{myInformation.email}}</div>
         <br>
-        <div>🎂生日：{{studentInfo.birthday}}</div>
+        <div>🎂生日：{{myInformation.birthday}}</div>
         <br>
-        <div v-bind:title="studentInfo.classHadSelected">📝已选课程数：{{studentInfo.classNumber}}</div>
+        <div v-bind:title="myInformation.classHadSelected">📝已选课程数：{{myInformation.classNumber}}</div>
         <br>
         <div>📌最多只能选5门课程哦！</div>
         <br>
@@ -52,7 +54,7 @@
     </div>
 
     <div class="right-column">
-        <table v-if="isSelect">
+        <table v-if="ifSelectCourse || ifLookMyCourse">
             <tr>
                 <th>课程序号</th>
                 <th>课程名称</th>
@@ -60,14 +62,21 @@
                 <th>课程学分</th>
                 <th>课程操作</th>
             </tr>
-            <tr v-for="couCanSel in coursesCanSelect">
-                <td>{{couCanSel.key}}</td>
-                <td>{{couCanSel.courseName}}</td>
-                <td>{{couCanSel.information}}</td>
-                <td>{{couCanSel.score}}</td>
-                <td class="left-column-work">
-                    选课
-                </td>
+            <!-- 情况1：显示可选课程 -->
+            <tr v-if="ifSelectCourse" v-for="c in coursesCanSelect">
+                <td>{{c.key}}</td>
+                <td>{{c.courseName}}</td>
+                <td>{{c.information}}</td>
+                <td>{{c.score}}</td>
+                <td class="left-column-work">选课</td>
+            </tr>
+            <!-- 情况2：显示已选课程 -->
+            <tr v-if="ifLookMyCourse" v-for="c in myCourse">
+                <td>{{c.key}}</td>
+                <td>{{c.courseName}}</td>
+                <td>{{c.information}}</td>
+                <td>{{c.score}}</td>
+                <td class="left-column-work">退课</td>
             </tr>
         </table>
     </div>
@@ -81,10 +90,13 @@
     new Vue({
             el: '#app',
             data: {
-                studentInfo: {},// 存储学生个人信息
+                ifSelectCourse: false,
+                ifEditPhoneNumber: false,
+                ifLookMyCourse: false,
+
+                myInformation: {},// 存储学生个人信息
                 coursesCanSelect: [],
-                isSelect: false,
-                ifEdit: false,
+                myCourse: [],
                 newPhone: '',
             },
             mounted() {
@@ -94,7 +106,7 @@
                 axios.post('/student/mLook')
                     .then(response => {
                         if (response.data.code === 200) {
-                            that.studentInfo = response.data.data; // 个人信息
+                            that.myInformation = response.data.data; // 个人信息
                         }
                         else if (response.data.code === 401) {
                             alert(response.data.message);
@@ -107,29 +119,42 @@
             },
 
             methods: {
+                exitLogin(){
+                    axios.post('/other/exitLogin');
+                    window.location.href = 'vueLogin.html';
+                },
                 // 学生 - 查看可选课程
-                coursesSelect() {
-                    this.isSelect = true;
+                turnSelectCourse() {
+                    this.ifSelectCourse = true;
+                    this.ifLookMyCourse = false;
                     let that = this;
                     axios.get('/student/scLook').then(response => {
                         that.coursesCanSelect = response.data;
                     })
                 },
-                editPhone() {
-                    this.newPhone = this.studentInfo.phoneNumber; // 将原手机号赋值给newPhone
-                    this.ifEdit = true;
+                turnEditPhone() {
+                    this.newPhone = this.myInformation.phoneNumber; // 将原手机号赋值给newPhone
+                    this.ifEditPhoneNumber = true;
                     // 自动聚焦输入框
                     this.$nextTick(() => {
                         this.$el.querySelector('input').focus();
                     });
                 },
+                turnLookMyCourse(){
+                    this.ifSelectCourse = false;
+                    this.ifLookMyCourse = true;
+                    let that = this;
+                    axios.post('/student/lookMyCourse').then(response => {
+                        that.myCourse = response.data;
+                    })
+                },
                 savePhone() {
                     let that = this;
                     const phoneRegex = /^1[3-9]\d{9}$/;
                     if (phoneRegex.test(that.newPhone)) {
-                        that.studentInfo.phoneNumber = that.newPhone;
+                        that.myInformation.phoneNumber = that.newPhone;
                         axios.post('/admin/updatePhone', new URLSearchParams({
-                            email: that.studentInfo.email,
+                            email: that.myInformation.email,
                             newPhone: that.newPhone
                         }), {
                             headers: {
@@ -141,7 +166,7 @@
                             }
                         });
                     }
-                    that.ifEdit = false;
+                    that.ifEditPhoneNumber = false;
                 }
             }
         },
