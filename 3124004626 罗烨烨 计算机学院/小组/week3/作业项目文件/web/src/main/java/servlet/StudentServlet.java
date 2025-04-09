@@ -1,12 +1,12 @@
-package web;
+package servlet;
 
 import com.alibaba.fastjson.JSON;
-import javabean.course.Courses;
-import javabean.course.StudentCourses;
-import javabean.people.Students;
-import javabean.people.Users;
-import myHandWriteTool.MySearch;
-import myHandWriteTool.MyUpdate;
+import pojo.Courses;
+import pojo.StudentCourses;
+import pojo.Students;
+import pojo.Users;
+import dao.utils.MySearch;
+import dao.utils.MyUpdate;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.Set;
 
 @WebServlet("/student/*")
@@ -30,7 +29,7 @@ public class StudentServlet extends MyBaseServlet {
     private Set<Courses> course;
 
     private Students targetStudent = null;
-    private String phone;
+    private String email;
 
     {
         try {
@@ -70,7 +69,7 @@ public class StudentServlet extends MyBaseServlet {
             return;
         }
 
-        phone = u.getPhoneNumber();
+        email = u.getEmail();
 
         refreshStudent();
 
@@ -89,7 +88,7 @@ public class StudentServlet extends MyBaseServlet {
         this.student = MySearch.searchToSet("SELECT * FROM student.students", Students.class);
         // 查找目标学生信息
         for (Students s : this.student) {
-            if (phone.equals(s.getPhoneNumber())) {
+            if (email.equals(s.getEmail())) {
                 targetStudent = s;
                 break;
             }
@@ -149,8 +148,8 @@ public class StudentServlet extends MyBaseServlet {
 
                 //更新学生选课信息
                 MyUpdate.update("UPDATE student.students SET classHadSelected = ?, classNumber = ? WHERE id = ?",
-                        targetStudent.getClassHadSelected() + "+" + c.getCourseName(),
-                        targetStudent.getClassNumber() + 1, targetStudent.getId());
+                        targetStudent.getClassHadSelected() + (targetStudent.getClassHadSelected().isEmpty() ? "" : "+")
+                                + c.getCourseName(), targetStudent.getClassNumber() + 1, targetStudent.getId());
 
 
                 //更新课程表信息

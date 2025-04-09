@@ -1,4 +1,4 @@
-package myHandWriteTool;
+package dao.utils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

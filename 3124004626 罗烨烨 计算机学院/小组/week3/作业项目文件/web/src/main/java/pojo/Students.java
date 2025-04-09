@@ -1,4 +1,4 @@
-package javabean.people;
+package pojo;
 
 public class Students {
     private Integer id;

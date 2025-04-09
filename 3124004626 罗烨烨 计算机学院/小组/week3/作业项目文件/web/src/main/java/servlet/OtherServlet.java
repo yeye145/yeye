@@ -1,10 +1,10 @@
-package web;
+package servlet;
 
-import javabean.people.Students;
-import javabean.people.Users;
+import pojo.Students;
+import pojo.Users;
 
-import myHandWriteTool.MySearch;
-import myHandWriteTool.MyUpdate;
+import dao.utils.MySearch;
+import dao.utils.MyUpdate;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
@@ -147,7 +147,7 @@ public class OtherServlet extends MyBaseServlet {
 
             MyUpdate.update("INSERT INTO `student`.`students` (`phoneNumber`, `classHadSelected`," +
                             " `classNumber`, `idNumber`, `gender`, `birthday`, `name`, `email`) VALUES " +
-                            "(?, ?, 0, ?, ?, ?, ?, ?);", phone, "还没有选课",
+                            "(?, ?, 0, ?, ?, ?, ?, ?);", phone, "",
                     idNumber, gender, year + "-" + moon + "-" + day, name, email);
 
 

@@ -1,4 +1,4 @@
-package javabean.course;
+package pojo;
 
 public class Courses {
 

@@ -1,4 +1,4 @@
-package myHandWriteTool;
+package dao.utils;
 
 import java.lang.reflect.Field;
 import java.sql.*;

@@ -291,9 +291,9 @@
                         ifSuccess = false;
                     } else {
                         // 邮箱正则验证
-                        const emailRegex = /^\w+@\w+$/;
+                        const emailRegex = /^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/;
                         if (!emailRegex.test(that.setEmail)) {
-                            that.errors.setEmail = '!!!邮箱格式应为??? + @ + ???'
+                            that.errors.setEmail = '!!!邮箱格式应为?@?.?'
                             ifSuccess = false;
                         }
                     }

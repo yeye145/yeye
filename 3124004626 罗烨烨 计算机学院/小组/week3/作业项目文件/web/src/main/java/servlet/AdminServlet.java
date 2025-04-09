@@ -1,14 +1,14 @@
-package web;
+package servlet;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import javabean.course.Courses;
-import javabean.course.StudentCourses;
-import javabean.people.Students;
-import javabean.people.Users;
+import pojo.Courses;
+import pojo.StudentCourses;
+import pojo.Students;
+import pojo.Users;
 
-import myHandWriteTool.MySearch;
-import myHandWriteTool.MyUpdate;
+import dao.utils.MySearch;
+import dao.utils.MyUpdate;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
