@@ -1,0 +1,291 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f5f5f5;
+    margin-top: 20px;
+}
+
+
+.left-column {
+    max-width: 1200px;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    left: 0; /* 紧贴左侧 */
+    top: 0; /* 从顶部开始 */
+    height: 900%; /* 和顶栏等高 */
+    width: 250px; /* 白条宽度 */
+    margin-top: 49px;
+}
+
+
+.top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    background-color: #000;
+    display: flex; /* 使用弹性布局 */
+    justify-content: flex-end; /* 内容右对齐 */
+    align-items: center; /* 垂直居中 */
+    padding: 0 20px; /* 左右内边距 */
+    z-index: 1000;
+}
+
+.top-bar-title {
+    color: white;
+    margin: 0;
+    font-size: 20px;
+    margin-right: 80px;
+}
+
+/* 登录 / 注册切换 */
+.left-column-work {
+    cursor: pointer;
+    transition: color 0.1s;
+}
+
+/* 鼠标悬停效果 */
+.left-column-work:hover {
+    color: #5e5b5b;
+    text-decoration: underline;
+}
+
+
+.right-column {
+    position: fixed;
+    left: 290px;
+    top: 50px;
+    right: 0;
+    bottom: 0;
+    overflow-y: auto;
+    padding: 20px;
+    background-color: #e1e1e1;
+    box-sizing: border-box;
+}
+
+#app .right-column table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 14px;
+
+}
+
+#app .right-column td {
+    padding: 12px 15px;
+    text-align: center;
+    border-bottom: 1px solid #e9ecef;
+
+}
+
+#app .right-column th {
+    background-color: #f8f9fa;
+    padding: 12px 15px;
+    text-align: center;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #e9ecef;
+}
+
+#app .right-column tr {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e9ecef;
+    vertical-align: top;
+    background-color: #f8f9fa;
+}
+
+/* 单独设置信息查询表格第一个和最后一个单元格的圆角 */
+#app .right-column tr:first-child th:first-child {
+    border-top-left-radius: 10px;
+}
+
+#app .right-column tr:first-child th:last-child {
+    border-top-right-radius: 10px;
+}
+
+#app .right-column tr:last-child td:first-child {
+    border-bottom-left-radius: 10px;
+}
+
+#app .right-column tr:last-child td:last-child {
+    border-bottom-right-radius: 10px;
+}
+
+
+#app .search-bar {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+#app .search-bar input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    flex-grow: 1;
+}
+
+#app .search-bar button {
+    padding: 8px 16px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#app .search-bar button:hover {
+    background-color: #e0e0e0;
+}
+
+.delete-confirm {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.delete-confirm button {
+    width: 20%;
+    padding: 1rem;
+    background-color: #000000;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.delete-confirm button:hover {
+    background-color: #2e2e2e;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.delete-confirm button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.custom-select-btn {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #ccc;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    padding: 0;
+    outline: none;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.custom-select-btn:hover {
+    border-color: #999;
+}
+
+.custom-select-btn.selected {
+    border-color: #333;
+}
+
+.custom-select-btn.selected::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    background: black;
+    border-radius: 50%;
+}
+
+
+/* 增设课程表单样式 */
+.insert-course-form {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px; /* 增加内边距 */
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px; /* 增大字体 */
+    height: 40px; /* 固定高度 */
+}
+
+/* 特别调整下拉菜单样式 */
+.form-group select {
+    appearance: none; /* 移除默认样式 */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    padding-right: 30px; /* 为下拉箭头留出空间 */
+}
+
+.location-select {
+    display: flex;
+    gap: 10px;
+    align-items: center; /* 垂直居中 */
+}
+
+.location-select select {
+    flex: 1;
+    min-width: 120px; /* 设置最小宽度 */
+}
+
+.location-select input {
+    width: 40px;
+}
+
+.form-actions {
+    text-align: right;
+    margin-top: 20px;
+}
+
+.form-actions button {
+    padding: 10px 20px; /* 增大按钮 */
+    margin-left: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px; /* 增大字体 */
+}
+
+.form-actions button[type="submit"] {
+    background-color: #000000;
+    color: white;
+}
+
+.form-actions button[type="button"] {
+    background-color: #f6f2f2;
+    color: #000000;
+}
+
+/* 鼠标悬停效果 */
+.form-actions button:hover {
+    opacity: 0.9;
+}

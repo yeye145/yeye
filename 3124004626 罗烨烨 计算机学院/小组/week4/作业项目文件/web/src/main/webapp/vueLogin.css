@@ -1,0 +1,122 @@
+/* 报错字体设置 */
+.error {
+    color: red;
+    font-size: 14px;
+}
+
+/* 页面背景 */
+body {
+    background: #f0f2f5;
+}
+
+/* 登录 / 注册切换 */
+h4 {
+    cursor: pointer;
+    transition: color 0.1s;
+
+}
+
+/* 鼠标悬停效果 */
+h4:hover {
+    color: #5e5b5b;
+    text-decoration: underline;
+}
+
+
+/* 忘记密码 */
+h5 {
+    cursor: pointer;
+    transition: color 0.1s;
+    margin-bottom: 0.1rem; /* 缩小下边距 */
+
+}
+
+/* 鼠标悬停效果 */
+h5:hover {
+    color: #5e5b5b;
+    text-decoration: underline;
+}
+
+/* 输入框 */
+input {
+    width: 100%;
+    padding: 0.3rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+/* 输入框上方文字 */
+label {
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+    color: #000000;
+}
+
+/* 提交按钮 */
+.button {
+    width: 75%;
+    padding: 1rem;
+    background-color: #000000;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+
+}
+
+/* 悬停在提交按钮上 */
+.button:hover {
+    background-color: #2e2e2e;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 提交按钮被点击 */
+.button:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* 登录/注册框的设置 */
+.wrapper {
+    background: white;
+    color: #090808;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 20%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 3rem;
+    border-radius: 8px;
+}
+
+/* 登录/注册框的设置 */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    min-height: 100vh;
+}
+
+/* 设置注册 / 登录界面的隐藏 */
+.form-panel {
+    display: none;
+    opacity: 0;
+}
+
+.form-panel.active {
+    display: block;
+    opacity: 1;
+}
+

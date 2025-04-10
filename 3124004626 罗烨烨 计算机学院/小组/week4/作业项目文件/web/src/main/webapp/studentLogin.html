@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>学生管理系统</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="login.css"/>
+</head>
+<body>
+<div id="app">
+    <div class="top-bar">
+        <h2 class="top-bar-title">{{whatAreYouDo}}</h2>
+    </div>
+    <div class="left-column">
+
+        <!-- 功能区域 -->
+        <h2 style="text-align: center;" title="学生登录">——学生信息管理——</h2>
+        <hr>
+        <br>
+        <div class="left-column-work" @dblclick="exitLogin">🚶‍♂️ 双击退出</div>
+        <br>
+        <div class="left-column-work" @click="turnEditPhone">🖊️ 修改号码</div>
+        <br>
+        <div class="left-column-work" @click="turnSelectCourse">🔎 可选课程</div>
+        <br>
+        <div class="left-column-work" @click="turnLookMyCourse">📖 我的课程</div>
+        <br>
+        <hr>
+        <h3>📚个人信息</h3>
+        <div>👤姓名：{{myInformation.name}}</div>
+        <br>
+        <div>
+            📞号码：
+            <span v-if="!ifEditPhoneNumber">{{ myInformation.phoneNumber }}</span>
+            <input
+                    v-else
+                    type="number"
+                    v-model="newPhone"
+                    @keyup.enter="savePhone"
+                    @blur="savePhone"
+            >
+        </div>
+        <br>
+        <div>📮邮箱：{{myInformation.email}}</div>
+        <br>
+        <div>🎂生日：{{myInformation.birthday}}</div>
+        <br>
+        <div v-bind:title="myInformation.classHadSelected">📝已选课程数：{{myInformation.classNumber}}</div>
+        <br>
+        <div>📌最多只能选5门课程哦！</div>
+        <br>
+        <hr>
+    </div>
+
+    <div class="right-column">
+        <div class="search-bar" v-if="ifSelectCourse && !ifLookMyCourse">
+            <input type="text" v-model="courseSearchQuery"
+                   placeholder="输入课程名称或信息搜索"
+                   @input="searchCourses">
+        </div>
+        <table v-if="ifSelectCourse">
+            <tr>
+                <th>课程序号</th>
+                <th>课程名称</th>
+                <th>课程信息</th>
+                <th>课程学分</th>
+                <th>课程操作</th>
+            </tr>
+            <!-- 情况1：显示可选课程 -->
+            <tr v-if="!ifLookMyCourse" v-for="c in coursesCanSelect">
+                <td>{{c.key}}</td>
+                <td>{{c.courseName}}</td>
+                <td>{{c.information}}</td>
+                <td>{{c.score}}</td>
+                <td class="left-column-work" @dblclick="selectThisCourse(c.key)">选课</td>
+            </tr>
+            <!-- 情况2：显示已选课程 -->
+            <tr v-if="ifLookMyCourse" v-for="c in myCourse">
+                <td>{{c.key}}</td>
+                <td>{{c.courseName}}</td>
+                <td>{{c.information}}</td>
+                <td>{{c.score}}</td>
+                <td class="left-column-work" @dblclick="dropThisCourse(c.key)">退课</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/axios/1.6.7/axios.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.14/vue.min.js"></script>
+
+<script>
+
+    new Vue({
+            el: '#app',
+            data: {
+                whatAreYouDo: "学生管理系统",
+                ifSelectCourse: false,
+                ifEditPhoneNumber: false,
+                ifLookMyCourse: false,
+
+                myInformation: {},// 存储学生个人信息
+                coursesCanSelect: [],
+                courseSearchQuery: '', // 课程关键字搜索
+                originalCourses: [], // 用于存储原始课程数据
+                myCourse: [],
+                newPhone: '',
+            },
+            mounted() {
+                // 页面加载完成后，发送异步请求，查询数据
+                let that = this;
+                axios.post('/student/mLook')
+                    .then(response => {
+                        if (response.data.code === 200) {
+                            that.myInformation = response.data.data; // 个人信息
+                        } else if (response.data.code === 401) {
+                            alert(response.data.message);
+                            window.location.href = '/vueLogin.html';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('请求错误:', error);
+                    });
+            },
+
+            methods: {
+                exitLogin() {
+                    axios.post('/other/exitLogin');
+                    window.location.href = 'vueLogin.html';
+                },
+                refresh() {
+                    let that = this;
+                    axios.get('/student/scLook').then(response => {
+                        that.originalCourses = response.data;
+                        that.coursesCanSelect = response.data;
+                    });
+                    axios.post('/student/lookMyCourse').then(response => {
+                        that.myCourse = response.data;
+                    });
+                    axios.post('/student/mLook').then(response => {
+                        if (response.data.code === 200) {
+                            that.myInformation = response.data.data; // 个人信息
+                        }
+                    })
+                },
+                // 学生 - 查看可选课程
+                turnSelectCourse() {
+                    this.whatAreYouDo = "可选课程——双击选课";
+                    this.ifSelectCourse = true;
+                    this.ifLookMyCourse = false;
+                    let that = this;
+                    axios.get('/student/scLook').then(response => {
+                        that.originalCourses = response.data;
+                        that.coursesCanSelect = response.data;
+                    });
+                },
+                turnEditPhone() {
+                    this.newPhone = this.myInformation.phoneNumber; // 将原手机号赋值给newPhone
+                    this.ifEditPhoneNumber = true;
+                    // 自动聚焦输入框
+                    this.$nextTick(() => {
+                        this.$el.querySelector('input').focus();
+                    });
+                },
+                turnLookMyCourse() {
+                    this.whatAreYouDo = "我的课程——“最多选5门课程”";
+                    this.ifSelectCourse = true;
+                    this.ifLookMyCourse = true;
+                    let that = this;
+                    axios.post('/student/lookMyCourse').then(response => {
+                        that.myCourse = response.data;
+                    })
+                },
+                savePhone() {
+                    let that = this;
+                    const phoneRegex = /^1[3-9]\d{9}$/;
+                    if (phoneRegex.test(that.newPhone)) {
+                        that.myInformation.phoneNumber = that.newPhone;
+                        axios.post('/admin/updatePhone', new URLSearchParams({
+                            email: that.myInformation.email,
+                            newPhone: that.newPhone
+                        }), {
+                            // 没设置的话，后端接收始终为null
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            }
+                        }).then(response => {
+                            if (response.data.code !== 200) {
+                                alert("更新手机号失败");
+                            }
+                        });
+                    }
+                    that.ifEditPhoneNumber = false;
+                },
+                // 课程搜索
+                searchCourses() {
+                    if (this.courseSearchQuery.trim() === '') {
+                        // 清空搜索时恢复原始数据
+                        this.coursesCanSelect = this.originalCourses
+                        return;
+                    }
+
+                    // 将查询的字符串转化为小写
+                    const query = this.courseSearchQuery.toLowerCase();
+                    this.coursesCanSelect = this.originalCourses.filter(course =>
+                        // 将课程名称转化为小写，如果包含这个课程名称，则储存
+                        course.courseName.toLowerCase().includes(query) ||
+                        course.information.toLowerCase().includes(query))
+                },
+                selectThisCourse(key) {
+                    let that = this;
+                    axios.post('/student/selectThisCourse', {
+                        key: key,
+                    }, {
+                        // 没设置的话，后端接收始终为null
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    }).then(response => {
+                        if (response.data.code === 200) {
+                            that.refresh();
+                            alert("选课成功");
+                        } else {
+                            alert(response.data.message);
+                        }
+                    })
+                },
+                dropThisCourse(key){
+                    let that = this;
+                    axios.post('/student/dropThisCourse', {
+                        key: key,
+                    }, {
+                        // 没设置的话，后端接收始终为null
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    }).then(response => {
+                        if (response.data.code === 200) {
+                            that.refresh();
+                            alert("退课成功");
+                        } else {
+                            alert(response.data.message);
+                        }
+                    })
+                },
+            }
+        },
+    )
+
+</script>
+</body>
+</html>

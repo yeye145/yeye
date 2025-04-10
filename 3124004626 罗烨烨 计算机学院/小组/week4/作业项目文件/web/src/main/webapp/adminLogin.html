@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>学生管理系统</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="login.css"/>
+</head>
+<body>
+<div id="app">
+    <div class="top-bar">
+        <h2 class="top-bar-title"
+            @click="turnInit"
+            style="cursor: pointer;"
+            :title="'清空右侧区域'"
+        >{{whatAreYouDo}}
+        </h2>
+    </div>
+    <div class="left-column">
+        <!-- 功能区域 -->
+        <h2 style="text-align: center;" title="管理员登录">——学生信息管理——</h2>
+        <hr>
+        <br>
+        <div class="left-column-work" @dblclick="exitLogin">🚶‍♂️ 双击退出</div>
+        <br>
+        <div class="left-column-work" @click="turnInsertCourse">➕ 增设课程</div>
+        <br>
+        <div class="left-column-work" @click="turnAllStudent">🔎 学生查询</div>
+        <br>
+        <div class="left-column-work" @click="turnAllCourse">🔍 课程查询</div>
+        <br>
+        <div v-if="ifAllCourses" class="left-column-work" @click="turnDeleteCourse">❌ 删除课程</div>
+        <br>
+
+    </div>
+
+    <div class="right-column">
+        <!--增设课程-->
+        <div v-if="ifInsertCourse" class="insert-course-form">
+            <form @submit.prevent="submitNewCourse">
+                <div class="form-group">
+                    <label>课程名称：<br>
+                        <input type="text" v-model="newCourseName" required maxlength="15">
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>课程学分：<br>
+                        <input type="number"
+                               v-model="newCourseScore"
+                               placeholder="正整数"
+                               required>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>最大可选人数：<br>
+                        <input type="number" v-model="newCourseMaxStudents" required></label>
+                </div>
+
+                <div class="form-group">
+                    <label>上课地点：</label>
+                    <div class="location-select">
+                        <select v-model="newCourseBuilding" required>
+                            <option value="">选择教学楼</option>
+                            <option v-for="n in 6" :value=n>教学楼{{n}}</option>
+                        </select>
+
+                        <select v-model="newCourseFloor" required>
+                            <option value="">选择楼层</option>
+                            <option v-for="n in 6" :value=n>{{n}}楼</option>
+                        </select>
+                        <br>
+                        <input type="number" v-model="newCourseRoomNumber"
+                               placeholder="教室编号"
+                               pattern="\d{2}"
+                               title="请输入两位数字"
+                               required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>上课时间：</label>
+                    <div class="location-select">
+                        <select v-model="newCourseWeekday" required>
+                            <option value="">选择日期</option>
+                            <option v-for="n in 7" :value=n>周{{n}}</option>
+                        </select>
+                        <select v-model="newCourseStart" required>
+                            <option value="">第几节开始</option>
+                            <option v-for="n in 8" :value=n>第{{n}}节</option>
+                        </select>
+                        <select v-model="newCourseEnd" required>
+                            <option value="">第几节结束</option>
+                            <option v-for="n in 8" :value=n>第{{n}}节</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit">提交</button>
+                    <button type="button" @click="cancelInsert">取消</button>
+                </div>
+            </form>
+        </div>
+
+        <!--课程搜索框-->
+        <div class="search-bar" v-if="ifAllCourses">
+            <input type="text" v-model="courseSearchQuery"
+                   placeholder="输入课程名称或信息搜索"
+                   @input="searchCourses">
+        </div>
+        <!--搜索学生的框-->
+        <div class="search-bar" v-if="ifAllStudents && !ifWhoSelectIt">
+            <input type="text" v-model="studentSearchQuery"
+                   placeholder="输入学生姓名、手机号或邮箱搜索"
+                   @input="searchStudents">
+        </div>
+        <table v-if="ifAllCourses">
+            <tr>
+                <th>课程序号</th>
+                <th>课程名称</th>
+                <th>课程信息</th>
+                <th>课程学分</th>
+                <th>是否可选</th>
+                <th>最大可选</th>
+                <th>当前已选</th>
+                <th v-if="ifDeleteCourse">勾选删除</th>
+            </tr>
+            <tr v-for="ac in allCourses">
+                <td class="left-column-work" @click="turnWhoSelectIt(ac.courseName)">{{ac.key}}</td>
+                <td class="left-column-work" @click="turnWhoSelectIt(ac.courseName)">{{ac.courseName}}</td>
+                <td class="left-column-work" @click="turnWhoSelectIt(ac.courseName)">{{ac.information}}</td>
+                <td @dblclick="editScore(ac)">
+                    <!--编辑学分-->
+                    <span v-if="!ac._editingScore">{{ac.score}}</span>
+                    <input v-else
+                           v-model="ac._newScore"
+                           @blur="saveScore(ac)"
+                           @keyup.enter="saveScore(ac)"
+                           type="number"
+                           min="0"
+                           step="1">
+                </td>
+                <td>{{ac.ifCanChoose}}</td>
+                <td>{{ac.numberCanChoose}}</td>
+                <td class="left-column-work" @click="turnWhoSelectIt(ac.courseName)">{{ac.numberChoose}}</td>
+                <td v-if="ifDeleteCourse">
+                    <button class="custom-select-btn"
+                            :class="{selected: ac._ifBeChosenToDelete}"
+                            @click="chooseCourseToDelete(ac)"></button>
+                </td>
+            </tr>
+        </table>
+        <div v-if="ifDeleteCourse && ifAllCourses && deleteChosenCourse.length > 0" class="delete-confirm">
+            <button @click="confirmDeleteCourse">确认删除选中课程</button>
+        </div>
+
+        <table v-if="ifAllStudents">
+            <tr>
+                <th>学生序号</th>
+                <th>学生姓名</th>
+                <th>手机号码</th>
+                <th>邮箱</th>
+                <th>已选课程名称</th>
+                <th>已选课程总数</th>
+                <th>性别</th>
+            </tr>
+            <tr v-for="s in allStudents" v-if="!ifWhoSelectIt">
+                <td>{{s.id}}</td>
+                <td>{{s.name}}</td>
+                <td @dblclick="editPhone(s)">
+                    <!--编辑手机号-->
+                    <span v-if="!s._editingPhone">{{s.phoneNumber}}</span>
+                    <input v-else
+                           v-model="s._newPhone"
+                           @blur="savePhone(s)"
+                           @keyup.enter="savePhone(s)"
+                           type="number">
+                </td>
+                <td>{{s.email}}</td>
+                <td>{{s.classHadSelected}}</td>
+                <td>{{s.classNumber}}</td>
+                <td>{{s.gender}}</td>
+            </tr>
+            <!--查询某门课程有哪些学生选-->
+            <tr v-for="s in whoSelectIt" v-if="ifWhoSelectIt">
+                <td>{{s.id}}</td>
+                <td>{{s.name}}</td>
+                <td>{{s.phoneNumber}}</td>
+                <td>{{s.email}}</td>
+                <td>{{s.classHadSelected}}</td>
+                <td>{{s.classNumber}}</td>
+                <td>{{s.gender}}</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/axios/1.6.7/axios.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.14/vue.min.js"></script>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            whatAreYouDo: "学生管理系统",
+            ifAllCourses: false,
+            ifAllStudents: false,
+            ifWhoSelectIt: false,
+            ifDeleteCourse: false,
+            ifInsertCourse: false,
+            allCourses: [],
+            allStudents: [],
+            whoSelectIt: [],
+
+            courseSearchQuery: '', // 课程关键字搜索
+            originalCourses: [], // 用于存储原始课程数据
+            studentSearchQuery: '', // 学生关键字搜索
+            originalStudents: [], // 保存原始学生数据
+            deleteChosenCourse: [],// 存储要删除的课程
+
+
+            newCourseName: '',
+            newCourseScore: '',
+            newCourseMaxStudents: '',
+            newCourseBuilding: '',
+            newCourseFloor: '',
+            newCourseRoomNumber: '',
+            newCourseWeekday: '',
+            newCourseStart: '',
+            newCourseEnd: '',
+
+
+        },
+        mounted() {
+            this.refresh();
+        },
+        methods: {
+            exitLogin(){
+                axios.post('/other/exitLogin');
+                window.location.href = 'vueLogin.html';
+            },
+            refresh() {
+                let that = this;
+                axios.post('/admin/coursesLook').then(response => {
+                    if (response.data.code === 401) {
+                        alert(response.data.message);
+                        window.location.href = '/vueLogin.html';
+                    }
+                    // 保存原始课程数据
+                    that.originalCourses = response.data;
+                    that.allCourses = response.data.map(course => ({
+                        ...course,
+                        _editingScore: false, // 临时变量，是否编辑学分
+                        _newScore: course.score, // 临时变量，编辑后的新学分
+                        _ifBeChosenToDelete: false, // 临时变量，是否被选中进批量删除
+                        ifCanChoose: course.ifCanChoose === 1 ? "是" : "否"
+                    }));
+
+                });
+                axios.post('/admin/studentsLook').then(response => {
+                    // 保存原始学生数据
+                    that.originalStudents = response.data;
+                    that.allStudents = response.data.map(student => ({
+                        // 使用扩展运算符(...)复制原有的学生对象属性，并添加两个临时新属性用于修改手机号码
+                        ...student,
+                        _editingPhone: false,
+                        _newPhone: student.phoneNumber
+                    }));
+                })
+            },
+            // 查看所有课程
+            turnInit() {
+                this.whatAreYouDo = "学生管理系统";
+                this.ifAllCourses = false;
+                this.ifAllStudents = false;
+                this.ifWhoSelectIt = false;
+                this.ifDeleteCourse = false;
+                this.ifInsertCourse = false;
+            },
+            turnAllCourse() {
+                this.refresh();
+                this.ifAllCourses = true;
+                this.ifAllStudents = false;
+                this.ifDeleteCourse = false;
+                this.ifInsertCourse = false;
+                this.whatAreYouDo = "查询课程";
+            },
+            // 查看所有学生
+            turnAllStudent() {
+                this.refresh();
+                this.ifAllCourses = false;
+                this.ifAllStudents = true;
+                this.ifWhoSelectIt = false;
+                this.ifDeleteCourse = false;
+                this.ifInsertCourse = false;
+                this.whatAreYouDo = "查询学生";
+            },
+            // 查看某门课程有谁选了
+            turnWhoSelectIt(cName) {
+                this.refresh();
+                this.ifAllCourses = false;
+                this.ifInsertCourse = false;
+                this.ifAllStudents = true;
+                this.ifWhoSelectIt = true;
+                this.whatAreYouDo = "查询选择课程“" + cName + "”的学生";
+                let that = this;
+                axios.post('/admin/whoSelect', new URLSearchParams({
+                    cName: cName
+                }), {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                }).then(response => {
+                    that.whoSelectIt = response.data;
+                })
+            },
+            // 增设课程
+            turnInsertCourse() {
+                this.ifInsertCourse = !this.ifInsertCourse;
+                this.ifAllCourses = false;
+                this.ifAllStudents = false;
+                this.ifWhoSelectIt = false;
+                if (this.ifInsertCourse) {
+                    this.whatAreYouDo = "增设课程";
+                } else {
+                    this.whatAreYouDo = "学生管理系统";
+                }
+            },
+            // 显示课程删除按钮
+            turnDeleteCourse() {
+                this.ifAllStudents = false;
+                this.ifWhoSelectIt = false;
+                this.ifDeleteCourse = !this.ifDeleteCourse;
+                this.whatAreYouDo = "批量删除课程";
+            },
+            // 编辑手机号
+            editPhone(student) {
+                student._editingPhone = true;
+                student._newPhone = student.phoneNumber;
+                // 自动聚焦输入框
+                this.$nextTick(() => {
+                    const input = this.$el.querySelector('input[v-model="s._newPhone"]');
+                    if (input) input.focus();
+                });
+            },
+            // 保存手机号
+            savePhone(student) {
+                const phoneRegex = /^1[3-9]\d{9}$/;
+                if (phoneRegex.test(student._newPhone)) {
+                    student.phoneNumber = student._newPhone;
+                    axios.post('/admin/updatePhone', new URLSearchParams({
+                        email: student.email,
+                        newPhone: student._newPhone
+                    }), {
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    }).then(response => {
+                        if (response.data.code !== 200) {
+                            alert("更新手机号失败");
+                        }
+                    }).catch(error => {
+                        alert("请求错误: " + error.message);
+                    });
+                }
+                student._editingPhone = false;
+            },
+            // 学分编辑
+            editScore(course) {
+                course._editingScore = true;
+                course._newScore = course.score;
+                this.$nextTick(() => {
+                    const input = this.$el.querySelector('input[v-model="ac._newScore"]');
+                    if (input) input.focus();
+                });
+            },
+            // 保存学分
+            saveScore(course) {
+                const newScore = parseInt(course._newScore);
+                if (newScore > 0) {
+                    axios.post('/admin/updateScore', new URLSearchParams({
+                        courseName: course.courseName,
+                        newScore: newScore
+                    }), {
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
+                    }).then(response => {
+                        if (response.data.code === 200) {
+                            course.score = newScore;
+                        } else {
+                            alert("更新学分失败");
+                        }
+                    }).catch(error => {
+                        alert("请求错误: " + error.message);
+                    });
+                }
+                course._editingScore = false;
+            },
+            // 课程搜索
+            searchCourses() {
+                if (this.courseSearchQuery.trim() === '') {
+                    // 清空搜索时恢复原始数据
+                    this.allCourses = this.originalCourses.map(course => ({
+                        ...course,
+                        _editingScore: false, // 临时变量，是否编辑学分
+                        _newScore: course.score, // 临时变量，编辑后的新学分
+                        _ifBeChosenToDelete: false, // 临时变量，是否被选中进批量删除
+                        ifCanChoose: course.ifCanChoose === 1 ? "是" : "否"
+                    }));
+                    return;
+                }
+
+                // 将查询的字符串转化为小写
+                const query = this.courseSearchQuery.toLowerCase();
+
+                this.allCourses = this.originalCourses
+                    .filter(course =>
+                        // 将课程名称转化为小写，如果包含这个课程名称，则储存
+                        course.courseName.toLowerCase().includes(query) ||
+                        course.information.toLowerCase().includes(query)
+                    )
+                    .map(course => ({
+                        ...course,
+                        _editingScore: false, // 临时变量，是否编辑学分
+                        _newScore: course.score, // 临时变量，编辑后的新学分
+                        _ifBeChosenToDelete: false, // 临时变量，是否被选中进批量删除
+                        ifCanChoose: course.ifCanChoose === 1 ? "是" : "否"
+                    }));
+            },
+            // 学生搜索
+            searchStudents() {
+                if (this.studentSearchQuery.trim() === '') {
+                    // 清空搜索时恢复原始数据
+                    this.allStudents = this.originalStudents.map(student => ({
+                        ...student,
+                        _editingPhone: false,
+                        _newPhone: student.phoneNumber
+                    }));
+                    return;
+                }
+
+                // 将查询的字符串转化为小写
+                const query = this.studentSearchQuery.toLowerCase();
+                this.allStudents = this.originalStudents
+                    .filter(student =>
+                        student.name.toLowerCase().includes(query) ||     // 按姓名搜索
+                        student.phoneNumber.includes(query) ||            // 按手机号搜索
+                        student.email.toLowerCase().includes(query)       // 按邮箱搜索
+                    )
+                    .map(student => ({
+                        ...student,
+                        _editingPhone: false,
+                        _newPhone: student.phoneNumber
+                    }));
+            },
+
+            chooseCourseToDelete(course) {
+                // 更改选中状态
+                course._ifBeChosenToDelete = !course._ifBeChosenToDelete;
+                // 如果被选中，加入数组
+                if (course._ifBeChosenToDelete) {
+                    this.deleteChosenCourse.push(course.courseName);
+                } else {
+                    // 若取消选中，从数组中移除
+                    this.deleteChosenCourse = this.deleteChosenCourse.filter(cName => cName !== course.courseName);
+                }
+            },
+            confirmDeleteCourse() {
+                let that = this;
+                axios.post('/admin/deleteCourse', {
+                    deleteTheseCourse: this.deleteChosenCourse,
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }).then(response => {
+                        if (response.data.code === 200) {
+                            alert("删除成功！")
+                            that.deleteChosenCourse = [];
+                            that.refresh();
+                        } else {
+                            alert("删除失败: " + response.data.message);
+                        }
+                    }
+                ).catch(error => {
+                    alert("请求错误: " + error.message);
+                });
+            },
+
+            submitNewCourse() {
+                // 验证教室编号
+                if (!/^\d{2}$/.test(this.newCourseRoomNumber)) {
+                    alert("教室编号必须是两位数字");
+                    return;
+                }
+                if (this.newCourseEnd < this.newCourseStart) {
+                    alert("课不能往前上")
+                    return;
+                }
+                let that = this;
+                axios.post('/admin/insertCourse', {
+                    newCourseName: that.newCourseName,
+                    newCourseScore: that.newCourseScore,
+                    newCourseMaxStudents: that.newCourseMaxStudents,
+                    newCourseBuilding: that.newCourseBuilding,
+                    newCourseFloor: that.newCourseFloor,
+                    newCourseRoomNumber: that.newCourseRoomNumber,
+                    newCourseWeekday: that.newCourseWeekday,
+                    newCourseStart: that.newCourseStart,
+                    newCourseEnd: that.newCourseEnd,
+                }, {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                }).then(response => {
+                    if (response.data.code === 200) {
+                        alert("课程添加成功");
+                        this.initNewCourse();
+                        this.refresh();
+                    } else {
+                        alert("添加失败: " + response.data.message);
+                    }
+                }).catch(error => {
+                    alert("请求错误: " + error.message);
+                });
+            },
+
+            initNewCourse() {
+                this.newCourseName = '';
+                this.newCourseScore = '';
+                this.newCourseBuilding = '';
+                this.newCourseFloor = '';
+                this.newCourseRoomNumber = '';
+                this.newCourseWeekday = '';
+                this.newCourseStart = '';
+                this.newCourseEnd = '';
+                this.newCourseMaxStudents = '';
+            },
+
+            cancelInsert() {
+                this.ifInsertCourse = false;
+                this.initNewCourse();
+            }
+        }
+    })
+</script>
+</body>
+</html>
